@@ -1,0 +1,139 @@
+{
+  "validation_timestamp": "2025-09-07T14:32:51.576516",
+  "overall_validation_score": 6.8,
+  "validation_status": "requires_revision",
+  "critical_issues": [
+    "Analysis based on assumptions rather than evidence",
+    "Missing statistical validation",
+    "Narrative lacks specific grounding"
+  ],
+  "action_items": [
+    "Research head-to-head statistics",
+    "Review recent match footage for both players",
+    "Find specific examples of Sabalenka's mental fragility",
+    "Validate power level claims with serve/groundstroke data",
+    "Define specific scenarios where Anisimova's versatility creates advantage"
+  ],
+  "system_learning_points": [
+    "Need better statistical integration in analysis pipeline",
+    "Reality-checking should happen earlier in process",
+    "Voice generation needs better style matching",
+    "Dashboard needs head-to-head module"
+  ],
+  "detailed_results": {
+    "checklist": {
+      "logical_consistency": {
+        "score": 7.5,
+        "issues": [
+          "Power assessment contradiction"
+        ]
+      },
+      "narrative_completeness": {
+        "score": 5.9,
+        "missing_elements": [
+          "stakes definition",
+          "historical context"
+        ]
+      },
+      "evidence_grounding": {
+        "score": 6.0,
+        "unsupported_claims": [
+          "Sabalenka loses composure under pressure"
+        ]
+      },
+      "prediction_specificity": {
+        "score": 7.0,
+        "vague_predictions": [
+          "Will break down"
+        ]
+      },
+      "confidence_calibration": {
+        "score": 6.5,
+        "calibration_issues": [
+          "High confidence on weak evidence"
+        ]
+      }
+    },
+    "voices": {
+      "authenticity_score": 6.8,
+      "style_deviations": [
+        "Too formal",
+        "Missing colloquialisms",
+        "Over-analytical tone"
+      ],
+      "tone_consistency": {
+        "score": 7.2,
+        "inconsistencies": [
+          "Skeptical voice too optimistic"
+        ]
+      },
+      "regeneration_needed": true,
+      "regeneration_reason": "Voices don't match authentic style"
+    },
+    "reality_check": {
+      "interview_alignment": {
+        "score": 5.0,
+        "notes": "No interview data provided"
+      },
+      "match_footage_validation": {
+        "score": 5.0,
+        "notes": "No footage data provided"
+      },
+      "statistical_support": {
+        "score": 5.0,
+        "notes": "No statistical data provided"
+      },
+      "vacuum_vs_reality_score": 5.0,
+      "reality_gaps": [
+        "Power levels assumed without statistical validation",
+        "Mental fragility claimed without historical evidence",
+        "Composure advantage not supported by pressure match data"
+      ]
+    },
+    "skincrawler": {
+      "historical_precedents": [
+        {
+          "matchup": "Power vs Technique",
+          "historical_accuracy": 0.65
+        },
+        {
+          "matchup": "Mental game emphasis",
+          "historical_accuracy": 0.78
+        }
+      ],
+      "pattern_matches": [
+        "Mental state emphasis",
+        "David vs Goliath narrative"
+      ],
+      "precedent_accuracy": 0.72,
+      "outlier_factors": [
+        "Finals pressure",
+        "Recent form changes",
+        "Head-to-head history"
+      ]
+    },
+    "gaps": {
+      "missing_data_points": [
+        "Head-to-head record",
+        "Recent form statistics",
+        "Pressure match performance data",
+        "Coach/team dynamics"
+      ],
+      "incomplete_narratives": [
+        "Stakes and motivation",
+        "Historical context",
+        "Specific breaking points"
+      ],
+      "weak_factor_chains": [
+        "Power \u2192 Mental fragility connection",
+        "Composure \u2192 Victory path"
+      ],
+      "dashboard_updates_needed": [
+        "Add head-to-head statistics module",
+        "Include pressure match performance tracker",
+        "Develop coach/team dynamics section",
+        "Create narrative stakes framework"
+      ]
+    }
+  }
+}

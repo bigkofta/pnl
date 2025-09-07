@@ -1,0 +1,46 @@
+{
+  "historical_cases_index": {
+    "last_updated": "2025-09-07T14:45:00Z",
+    "total_cases": 1,
+    "cases": [
+      {
+        "case_id": "anisimova_vs_sabalenka_finals_low_bsi",
+        "case_type": "low_bsi_reference",
+        "date": "2025-09-07",
+        "sport": "tennis",
+        "event": "finals",
+        "bsi_score": 6.6,
+        "prediction_outcome": "incorrect",
+        "key_learning": "Eyes never lie - direct observation beats theoretical frameworks",
+        "file_path": "./low_bsi_reference_case.json",
+        "tags": ["low_bsi", "theoretical_override", "body_language", "finals_pressure"],
+        "system_updates_triggered": [
+          "Added eyes_never_lie_check prompt",
+          "Added reality_anchor prompt", 
+          "Updated validation loop with body language protocols"
+        ]
+      }
+    ],
+    "case_types": {
+      "low_bsi_reference": {
+        "description": "Cases where low BSI led to theoretical frameworks overriding observable reality",
+        "count": 1,
+        "key_patterns": ["binary_thinking", "vacuum_analysis", "missing_reality_checks"]
+      }
+    },
+    "learning_themes": {
+      "eyes_never_lie": {
+        "cases": ["anisimova_vs_sabalenka_finals_low_bsi"],
+        "lesson": "Direct visual observation of body language is more reliable than theoretical analysis"
+      },
+      "low_bsi_vulnerability": {
+        "cases": ["anisimova_vs_sabalenka_finals_low_bsi"], 
+        "lesson": "When BSI < 7.0, tendency to impose theoretical frameworks over reality"
+      },
+      "historical_context_matters": {
+        "cases": ["anisimova_vs_sabalenka_finals_low_bsi"],
+        "lesson": "Specific past performance creates different psychological dynamics than general pressure"
+      }
+    }
+  }
+} 

@@ -1,0 +1,130 @@
+{
+  "analysis_id": "wimbledon_final_789_full",
+  "match_context": "Wimbledon Final 2023",
+  "analyst_id": "steve",
+  "created_at": "2023-07-15T10:00:00Z",
+  "status": "validated_correct",
+  "sport": "tennis",
+  "event_type": "final",
+  "_schema_notes": {
+    "phase_1": "PRE-EVENT INTUITIVE WEIGHTING",
+    "phase_2": "IN-EVENT CASCADE FLOW (The Seesaw)",
+    "validation": "POST-EVENT LEARNING AND VALIDATION",
+    "metadata": "QUERYING AND CLASSIFICATION DATA"
+  },
+
+  "intuitive_weighting": {
+    "narrative_arc": {
+      "player_gauff": {
+        "archetype": "Horror Movie Fan",
+        "scenario": "Facing a 'Final Destination' scenario",
+        "mental_state": "Manufactured toughness",
+        "emotion": "Facing fear",
+        "narrative_summary": "Someone who watches horror but doesn't live it"
+      },
+      "player_sabalenka": {
+        "archetype": "Real-Life Survivor", 
+        "scenario": "Living a real-life horror story",
+        "mental_state": "Authentic resilience",
+        "emotion": "Strength forged by pain",
+        "narrative_summary": "Someone who has lived through actual trauma and emerged stronger"
+      }
+    },
+    "metaphorical_battle": "The one watching the horror story vs. the one living it",
+    "strength_factors": {
+      "symbolic_alignment": {
+        "score": 9.2,
+        "max_score": 10.0,
+        "justification": "Exceptional alignment: 'Finals' + 'Final Destination' wordplay, horror theme resonates with player interests, opponent's real trauma creates perfect narrative contrast"
+      },
+      "belief_intensity": {
+        "score": 8.5,
+        "max_score": 10.0,
+        "justification": "Strong conviction in 'lived experience trumps theoretical toughness' thesis. Historical precedent supports survivors over observers in high-pressure scenarios"
+      },
+      "sentiment_intensity": {
+        "score": 7.8,
+        "max_score": 10.0,
+        "justification": "Pre-match interviews show Sabalenka's calm stoicism vs Gauff's nervous energy. Body language and vocal tone analysis supports narrative positioning"
+      },
+      "narrative_breathability": {
+        "score": 8.8,
+        "max_score": 10.0,
+        "justification": "Story feels inevitable and complete. Multiple reinforcing metaphors create strong narrative momentum"
+      }
+    },
+    "predicted_outcome": {
+      "winner": "Aryna Sabalenka",
+      "confidence": 8.6,
+      "method": "Straight sets or dominant performance",
+      "summary": "The narrative strongly suggests the survivor's authentic resilience will overcome the fan's manufactured toughness in the pressure cooker of a Grand Slam final"
+    },
+    "raw_intuition_text": "Coco feels like she is in literally the 'final' destination. Sabalenka is living a real-life horror story with her losses and trauma. The one living it defeats the one watching it."
+  },
+
+  "in_game_cascade": {
+    "trigger_insight": "Sabalenka's opening service game - immediate dominance and rhythm establishment",
+    "total_completion": 255,
+    "completion_threshold": 200,
+    "final_outcome": "Sabalenka wins 6-3, 6-2 in straight sets, confirming initial narrative",
+    "cascade_levels": [
+      {
+        "level": 0,
+        "title": "Initial Insight", 
+        "subtitle": "Cascade Trigger",
+        "label": "Sabalenka breaks Gauff in opening game",
+        "completion": 95,
+        "timestamp": "Game 1",
+        "technical_details": "Clean service return winners, immediate pressure application"
+      },
+      {
+        "level": 1,
+        "title": "First Application",
+        "subtitle": "Obvious Play", 
+        "label": "Gauff's double fault under pressure",
+        "completion": 80,
+        "timestamp": "Game 3", 
+        "technical_details": "Break point, crowd noise, visible tension in serving motion"
+      },
+      {
+        "level": 2,
+        "title": "Secondary Ripple",
+        "subtitle": "One Level Deeper",
+        "label": "Crowd energy shifts from hopeful to resigned", 
+        "completion": 45,
+        "timestamp": "Set 1, 4-1",
+        "technical_details": "Audible change in crowd dynamics, Gauff's body language becomes defensive"
+      },
+      {
+        "level": 3,
+        "title": "Tertiary Cascade", 
+        "subtitle": "Hidden Connections",
+        "label": "Sabalenka serves out championship with authority",
+        "completion": 35,
+        "timestamp": "Final game",
+        "technical_details": "Ace on championship point, celebration shows relief not surprise"
+      }
+    ]
+  },
+
+  "validation": {
+    "prediction_accuracy": "correct",
+    "narrative_accuracy": "high",
+    "unexpected_elements": [
+      "Gauff showed more fight in set 2 than predicted",
+      "Sabalenka's serving was more dominant than anticipated"
+    ],
+    "key_learnings": [
+      "Horror movie metaphor proved predictive",
+      "Symbolic alignment score of 9+ appears to be highly reliable",
+      "First game momentum was decisive as predicted"
+    ]
+  },
+
+  "metadata": {
+    "tags": ["grand_slam", "final", "psychological_profile", "narrative_analysis", "horror_metaphor"],
+    "themes": ["survivor_vs_observer", "authentic_vs_manufactured", "pressure_cooker"],
+    "outcome_type": "decisive_victory",
+    "prediction_method": "narrative_psychological"
+  }
+} 

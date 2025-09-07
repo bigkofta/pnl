@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SteveSystem - Master Control Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-bg: #0a0a0a;
+            --secondary-bg: #1a1a1a;
+            --card-bg: #2a2a2a;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --border-color: #404040;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--primary-bg) 0%, var(--secondary-bg) 100%);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+        }
+        
+        .dashboard-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .dashboard-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .status-active { background-color: var(--accent-green); }
+        .status-warning { background-color: var(--accent-yellow); }
+        .status-error { background-color: var(--accent-red); }
+        .status-neutral { background-color: var(--text-secondary); }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+            transition: width 0.5s ease;
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue), #1d4ed8);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .input-field {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text-primary);
+            width: 100%;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .voice-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+        
+        .thermometer {
+            width: 20px;
+            height: 100px;
+            background: linear-gradient(to top, var(--accent-red) 0%, var(--accent-yellow) 50%, var(--accent-green) 100%);
+            border-radius: 10px;
+            position: relative;
+        }
+        
+        .thermometer::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--secondary-bg);
+            border-radius: 10px;
+            transition: height 0.5s ease;
+        }
+        
+        .grid-auto {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="bg-black/50 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-green-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-brain text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold">SteveSystem</h1>
+                        <p class="text-sm text-gray-400">Meta Content Orchestrator</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <div class="text-right">
+                        <div class="text-sm text-gray-400">Session</div>
+                        <div class="font-mono text-green-400" id="session-time"></div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm text-gray-400">BSI Status</div>
+                        <div class="flex items-center">
+                            <span class="status-indicator status-warning"></span>
+                            <span id="bsi-status">6.6 - Re-path Active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-6 py-8">
+        
+        <!-- Read Input & Contra Analysis Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            
+            <!-- Read Input -->
+            <div class="dashboard-card">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold flex items-center">
+                        <i class="fas fa-edit text-blue-400 mr-3"></i>
+                        Current Read
+                    </h2>
+                    <button class="btn-primary" onclick="processRead()">
+                        <i class="fas fa-arrow-right mr-2"></i>Process
+                    </button>
+                </div>
+                <textarea id="read-input" class="input-field h-32 mb-4" placeholder="Paste your GPT read here..."></textarea>
+                <div class="flex space-x-3">
+                    <button class="btn-primary flex-1" onclick="runContra()">
+                        <i class="fas fa-search mr-2"></i>Run Contra
+                    </button>
+                    <button class="btn-primary flex-1" onclick="checkBSI()">
+                        <i class="fas fa-brain mr-2"></i>Check BSI
+                    </button>
+                </div>
+            </div>
+
+            <!-- Contra Analysis -->
+            <div class="dashboard-card">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold flex items-center">
+                        <i class="fas fa-balance-scale text-red-400 mr-3"></i>
+                        Contra Analysis
+                    </h2>
+                    <span class="status-indicator status-active"></span>
+                </div>
+                <div id="contra-results" class="space-y-3">
+                    <div class="bg-red-900/30 border border-red-500/50 rounded-lg p-3">
+                        <div class="font-semibold text-red-300">Power Assessment Contradiction</div>
+                        <div class="text-sm text-gray-300 mt-1">You said "only power" but also "can match the power" - which dominates?</div>
+                    </div>
+                    <div class="bg-yellow-900/30 border border-yellow-500/50 rounded-lg p-3">
+                        <div class="font-semibold text-yellow-300">Mental State vs Performance Link</div>
+                        <div class="text-sm text-gray-300 mt-1">Mental advantage noted but not weighted against proven performance.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BSI Scale & Thermometer Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            
+            <!-- BSI Scale -->
+            <div class="dashboard-card">
+                <h2 class="text-xl font-bold flex items-center mb-4">
+                    <i class="fas fa-chart-line text-blue-400 mr-3"></i>
+                    BSI Scale
+                </h2>
+                <div class="text-center mb-4">
+                    <div class="metric-value">6.6</div>
+                    <div class="text-sm text-gray-400">Current BSI Score</div>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">Symbolic Alignment</span>
+                        <span class="font-bold">6.5</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 65%"></div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">Belief Intensity</span>
+                        <span class="font-bold">7.2</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 72%"></div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">Narrative Breathability</span>
+                        <span class="font-bold text-red-400">5.9</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 59%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Soros Alignment Thermometer -->
+            <div class="dashboard-card">
+                <h2 class="text-xl font-bold flex items-center mb-4">
+                    <i class="fas fa-thermometer-half text-green-400 mr-3"></i>
+                    Soros Alignment
+                </h2>
+                <div class="flex items-center justify-center h-32">
+                    <div class="thermometer" id="soros-thermometer"></div>
+                    <div class="ml-4">
+                        <div class="metric-value text-2xl">73°</div>
+                        <div class="text-sm text-gray-400">Reflexivity Index</div>
+                        <div class="text-xs text-yellow-400 mt-2">Moderate Alignment</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Re-path Status -->
+            <div class="dashboard-card">
+                <h2 class="text-xl font-bold flex items-center mb-4">
+                    <i class="fas fa-route text-yellow-400 mr-3"></i>
+                    Re-path Status
+                </h2>
+                <div class="space-y-3">
+                    <div class="bg-yellow-900/30 border border-yellow-500/50 rounded-lg p-3">
+                        <div class="text-yellow-300 font-semibold">LOW BSI DETECTED</div>
+                        <div class="text-sm text-gray-300">Re-path Protocol Active</div>
+                    </div>
+                    <div class="text-sm space-y-2">
+                        <div class="flex items-center">
+                            <i class="fas fa-eye text-blue-400 mr-2"></i>
+                            Eyes Never Lie Check
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-anchor text-green-400 mr-2"></i>
+                            Reality Anchor Prompt
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-history text-purple-400 mr-2"></i>
+                            Historical Case Reference
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voices & Analysis Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            
+            <!-- Skitz Voices -->
+            <div class="dashboard-card">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold flex items-center">
+                        <i class="fas fa-users text-purple-400 mr-3"></i>
+                        Skitz Voices
+                    </h2>
+                    <button class="btn-primary" onclick="generateVoices()">
+                        <i class="fas fa-microphone mr-2"></i>Generate
+                    </button>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-center p-3 bg-gray-800/50 rounded-lg">
+                        <div class="voice-avatar">S</div>
+                        <div class="flex-1">
+                            <div class="font-semibold">Skeptical Voice</div>
+                            <div class="text-sm text-gray-400">Authenticity: 6.8/10</div>
+                        </div>
+                        <button class="text-blue-400 hover:text-blue-300">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                    <div class="flex items-center p-3 bg-gray-800/50 rounded-lg">
+                        <div class="voice-avatar">O</div>
+                        <div class="flex-1">
+                            <div class="font-semibold">Optimistic Voice</div>
+                            <div class="text-sm text-gray-400">Authenticity: 7.2/10</div>
+                        </div>
+                        <button class="text-blue-400 hover:text-blue-300">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                    <div class="flex items-center p-3 bg-gray-800/50 rounded-lg">
+                        <div class="voice-avatar">A</div>
+                        <div class="flex-1">
+                            <div class="font-semibold">Analytical Voice</div>
+                            <div class="text-sm text-gray-400">Authenticity: 6.4/10</div>
+                        </div>
+                        <button class="text-blue-400 hover:text-blue-300">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skincrawler -->
+            <div class="dashboard-card">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold flex items-center">
+                        <i class="fas fa-spider text-orange-400 mr-3"></i>
+                        Skincrawler
+                    </h2>
+                    <span class="text-sm text-gray-400">Historical Analysis</span>
+                </div>
+                <div class="space-y-3">
+                    <div class="bg-blue-900/30 border border-blue-500/50 rounded-lg p-3">
+                        <div class="font-semibold text-blue-300">Pattern Match Found</div>
+                        <div class="text-sm text-gray-300">Power vs Technique: 65% accuracy</div>
+                    </div>
+                    <div class="bg-green-900/30 border border-green-500/50 rounded-lg p-3">
+                        <div class="font-semibold text-green-300">Mental Game Emphasis</div>
+                        <div class="text-sm text-gray-300">Historical accuracy: 78%</div>
+                    </div>
+                    <div class="text-sm space-y-2">
+                        <div class="flex justify-between">
+                            <span>Precedent Accuracy</span>
+                            <span class="font-bold">72%</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Similar Cases</span>
+                            <span class="font-bold">14</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Integration & Public Analysis Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            
+            <!-- Trading Dashboard -->
+            <div class="dashboard-card">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold flex items-center">
+                        <i class="fas fa-chart-bar text-green-400 mr-3"></i>
+                        Trading Dashboard
+                    </h2>
+                    <button class="btn-primary" onclick="openDashboard()">
+                        <i class="fas fa-external-link-alt"></i>
+                    </button>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">Pre-Bet Commitment</span>
+                        <span class="status-indicator status-warning"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">Pressure Scanner</span>
+                        <span class="status-indicator status-active"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">Breath Tracker</span>
+                        <span class="status-indicator status-neutral"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">Human Intelligence</span>
+                        <span class="status-indicator status-active"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Public Sentiment -->
+            <div class="dashboard-card">
+                <h2 class="text-xl font-bold flex items-center mb-4">
+                    <i class="fas fa-globe text-cyan-400 mr-3"></i>
+                    Public Analysis
+                </h2>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-sm">Market Sentiment</span>
+                        <span class="text-red-400 font-bold">Bearish</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm">Social Media Buzz</span>
+                        <span class="text-yellow-400 font-bold">High</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm">Expert Consensus</span>
+                        <span class="text-blue-400 font-bold">Split</span>
+                    </div>
+                    <canvas id="sentiment-chart" width="100" height="60"></canvas>
+                </div>
+            </div>
+
+            <!-- Historical Cases -->
+            <div class="dashboard-card">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold flex items-center">
+                        <i class="fas fa-archive text-gray-400 mr-3"></i>
+                        Historical Cases
+                    </h2>
+                    <span class="text-sm text-gray-400">1 Case</span>
+                </div>
+                <div class="space-y-3">
+                    <div class="bg-red-900/30 border border-red-500/50 rounded-lg p-3">
+                        <div class="font-semibold text-red-300">Low BSI Reference</div>
+                        <div class="text-sm text-gray-300">Anisimova vs Sabalenka</div>
+                        <div class="text-xs text-red-400 mt-1">Eyes Never Lie Lesson</div>
+                    </div>
+                    <button class="w-full text-left text-sm text-blue-400 hover:text-blue-300">
+                        <i class="fas fa-plus mr-2"></i>View All Cases
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Status Footer -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div class="dashboard-card">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-green-400">✓</div>
+                    <div class="text-sm text-gray-400">Contra Active</div>
+                </div>
+            </div>
+            <div class="dashboard-card">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-yellow-400">⚠</div>
+                    <div class="text-sm text-gray-400">BSI Low</div>
+                </div>
+            </div>
+            <div class="dashboard-card">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-blue-400">🎤</div>
+                    <div class="text-sm text-gray-400">Voices Ready</div>
+                </div>
+            </div>
+            <div class="dashboard-card">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-purple-400">📊</div>
+                    <div class="text-sm text-gray-400">Dashboard Live</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize dashboard
+        function initDashboard() {
+            updateSessionTime();
+            setInterval(updateSessionTime, 1000);
+            initSentimentChart();
+            updateThermometer(73);
+        }
+
+        function updateSessionTime() {
+            document.getElementById('session-time').textContent = new Date().toLocaleTimeString();
+        }
+
+        function updateThermometer(value) {
+            const thermometer = document.getElementById('soros-thermometer');
+            const fillHeight = 100 - value;
+            thermometer.style.setProperty('--fill-height', fillHeight + '%');
+        }
+
+        function initSentimentChart() {
+            const ctx = document.getElementById('sentiment-chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Positive', 'Negative', 'Neutral'],
+                    datasets: [{
+                        data: [30, 45, 25],
+                        backgroundColor: ['#10b981', '#ef4444', '#6b7280'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // Dashboard functions
+        function processRead() {
+            const readInput = document.getElementById('read-input').value;
+            if (!readInput.trim()) {
+                alert('Please enter a read first');
+                return;
+            }
+            // Simulate processing
+            console.log('Processing read:', readInput);
+        }
+
+        function runContra() {
+            alert('Running Contra analysis...');
+        }
+
+        function checkBSI() {
+            alert('Checking BSI score...');
+        }
+
+        function generateVoices() {
+            alert('Generating Skitz voices...');
+        }
+
+        function openDashboard() {
+            window.open('/trading dashbaord/dashboard', '_blank');
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html> 
