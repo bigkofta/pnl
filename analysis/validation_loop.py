@@ -289,7 +289,7 @@ if __name__ == "__main__":
     print(f"Action Items: {len(final_report['action_items'])}")
     
     # Save validation report
-    with open('../trading dashbaord/validation_report.json', 'w') as f:
+    with open('../trading_dashboard/validation_report.json', 'w') as f:
         json.dump(final_report, f, indent=2)
     
     print("📁 Validation report saved to trading dashboard") 

@@ -175,6 +175,7 @@
                             <span id="bsi-status">6.6 - Re-path Active</span>
                         </div>
                     </div>
+                    <img class="w-12 h-12 rounded-full object-cover" src="assets/profile.png" alt="Profile">
                 </div>
             </div>
         </div>
@@ -392,8 +393,76 @@
             </div>
         </div>
 
+        <!-- Expression Constraint Analysis -->
+        <div class="grid grid-cols-1 gap-6 mb-8">
+            <div class="dashboard-card">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold flex items-center">
+                        <i class="fas fa-sitemap text-teal-400 mr-3"></i>
+                        Expression Constraint Analysis
+                    </h2>
+                    <span class="text-sm text-gray-400">From Read to Position Architecture</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                    <!-- 1. Reads -->
+                    <div class="space-y-2">
+                        <h3 class="font-bold text-lg text-gray-300">1. READS</h3>
+                        <p class="text-sm text-gray-400">Quality Signal Generation</p>
+                        <ul class="text-xs list-disc list-inside space-y-1 pl-1">
+                            <li>Tag read with confidence (A/B/C)</li>
+                            <li>A-Reads: Standalone + Parlay</li>
+                            <li>B-Reads: Parlay-only</li>
+                            <li>C-Reads: Pass / explore</li>
+                        </ul>
+                    </div>
+                    <!-- 2. Expressions -->
+                    <div class="space-y-2">
+                        <h3 class="font-bold text-lg text-gray-300">2. EXPRESSIONS</h3>
+                        <p class="text-sm text-gray-400">Position Architecture</p>
+                        <ul class="text-xs list-disc list-inside space-y-1 pl-1">
+                            <li>Single: High-conviction</li>
+                            <li>Parlay: Narrative correlation</li>
+                            <li>Live: Developing situations</li>
+                            <li>Hedge: Thesis shifts</li>
+                        </ul>
+                    </div>
+                    <!-- 3. Sizing -->
+                    <div class="space-y-2">
+                        <h3 class="font-bold text-lg text-gray-300">3. SIZING</h3>
+                        <p class="text-sm text-gray-400">Capital Efficiency</p>
+                        <ul class="text-xs list-disc list-inside space-y-1 pl-1">
+                            <li>Kelly-style allocation</li>
+                            <li>Independence mapping</li>
+                            <li>Liquidity management</li>
+                        </ul>
+                    </div>
+                    <!-- 4. Execution -->
+                    <div class="space-y-2">
+                        <h3 class="font-bold text-lg text-gray-300">4. EXECUTION</h3>
+                        <p class="text-sm text-gray-400">Systematic Implementation</p>
+                        <ul class="text-xs list-disc list-inside space-y-1 pl-1">
+                            <li>Pre-match expression map</li>
+                            <li>Live adjustment protocols</li>
+                            <li>Post-result analysis</li>
+                        </ul>
+                    </div>
+                    <!-- 5. Results -->
+                    <div class="space-y-2">
+                        <h3 class="font-bold text-lg text-gray-300">5. RESULTS</h3>
+                        <p class="text-sm text-gray-400">Constraint Identification</p>
+                        <ul class="text-xs list-disc list-inside space-y-1 pl-1">
+                            <li>Track Read Accuracy vs. Expression ROI</li>
+                            <li>Identify underexploited edges</li>
+                            <li>Measure asymmetry capture rate</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Dashboard Integration & Public Analysis Row -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 lg:items-start gap-6 mb-8">
             
             <!-- Trading Dashboard -->
             <div class="dashboard-card">
@@ -445,7 +514,9 @@
                         <span class="text-sm">Expert Consensus</span>
                         <span class="text-blue-400 font-bold">Split</span>
                     </div>
-                    <canvas id="sentiment-chart" width="100" height="60"></canvas>
+                    <div class="relative h-24 mt-4">
+                        <canvas id="sentiment-chart"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -565,7 +636,7 @@
         }
 
         function openDashboard() {
-            window.open('/trading dashbaord/dashboard', '_blank');
+            window.open('unified_dashboard.html', '_blank');
         }
 
         // Initialize on load

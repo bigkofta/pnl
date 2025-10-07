@@ -100,7 +100,43 @@ This system consolidates:
 2. **Run Analysis**: Use `python analysis/contra.py` for bias checking
 3. **Check BSI**: Use `python analysis/bsi_repath.py` for re-pathing
 4. **Generate Voices**: Run voice cloning scripts in `voiceclone/`
-5. **Access Dashboard**: Open `trading_dashboard/dashboard`
+5. **Access Dashboard**: Open `trading_dashboard/dashboard.html`
+
+## 🎙️ Voice Cloning Tips (practical guidance)
+
+These are light-weight suggestions based on what sounded best in recent runs. Use them as a guide, not hard rules.
+
+- **What worked well**
+  - Use a clean prompt: `anisimova_segment1.mp3` produced the most natural timbre.
+  - Prefer NORMAL-ish settings: lower temperature/exaggeration/CFG keeps identity stable.
+  - Generate in short chunks: shorter text preserves voice character and prosody.
+  - Add punctuation and natural pauses to the script to guide cadence.
+
+- **What to avoid (for long reads)**
+  - One long generation in a single pass (identity/prosody drift over time).
+  - Aggressive "sassy/roast" settings on long text (exaggerates drift/artifacts).
+  - Noisy/expressive prompts for anchoring very long reads.
+
+- **Simple recipe for long scripts**
+  1) Anchor with the cleanest prompt (segment1).
+  2) Keep settings conservative (NORMAL style, lower temperature/exaggeration).
+  3) Split the script into 3–6 logical chunks with clear punctuation.
+  4) Generate per chunk, then stitch the outputs.
+  5) Normalize loudness if needed for consistency.
+
+### Common artifacts: why they happen and how to fix
+
+- **Elongated vowel / word loop (e.g., “wiiiiin”)**
+  - Why: Over‑expressive params + under‑punctuated text cause prosody loops; long single‑pass increases drift.
+  - Fix: Add commas/pauses; lower temperature/exaggeration; cfg_weight ≈ 0.55–0.60; raise repetition_penalty to 1.20–1.30; chunk long text.
+
+- **Buzz/zip at phrase onset**
+  - Why: Prompt→speech transition artifact or frame onset with very low energy.
+  - Fix: Add a leading pause/comma or 100–200 ms silence; slightly raise cfg_weight; keep temperature modest.
+
+- **Identity drift over long reads**
+  - Why: Conditioning fades over time, amplified by spicy settings.
+  - Fix: Use the cleanest prompt (seg1), NORMAL-ish settings, generate in chunks, stitch, normalize.
 
 ## 📚 Historical Learning
 

@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Big Picture Engineering Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .hidden { display: none !important; }
+        .tab-active {
+            background: linear-gradient(to right, #2563eb, #9333ea);
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .tab-inactive {
+            color: #6b7280;
+        }
+        .tab-inactive:hover {
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                    Big Picture Engineering
+                </h1>
+                <p class="text-gray-600 text-lg">Build legacy, not just hands</p>
+            </div>
+
+            <!-- Navigation -->
+            <div class="flex flex-wrap gap-2 mb-8 justify-center">
+                <button id="pnl-tab" class="tab-active flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all">
+                    <i data-lucide="calendar" class="w-4 h-4"></i>
+                    PNL Calendar
+                </button>
+                <button id="dashboard-tab" class="tab-inactive flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+                    Dashboard
+                </button>
+                <button id="northstar-tab" class="tab-inactive flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all">
+                    <i data-lucide="star" class="w-4 h-4"></i>
+                    North Star
+                </button>
+                <button id="sessions-tab" class="tab-inactive flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all">
+                    <i data-lucide="clock" class="w-4 h-4"></i>
+                    Sessions
+                </button>
+                <button id="invisible-tab" class="tab-inactive flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all">
+                    <i data-lucide="trophy" class="w-4 h-4"></i>
+                    Invisible Wins
+                </button>
+                <button id="prompts-tab" class="tab-inactive flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all">
+                    <i data-lucide="lightbulb" class="w-4 h-4"></i>
+                    Daily Prompts
+                </button>
+            </div>
+
+            <!-- PNL Calendar Tab -->
+            <div id="pnl-content" class="space-y-6">
+                <!-- PNL Calendar Header -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900">PNL Calendar</h2>
+                        <div class="flex items-center gap-4">
+                            <button id="prev-month" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                                <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                            </button>
+                            <h3 id="current-month" class="text-xl font-semibold text-gray-700">August 2025</h3>
+                            <button id="next-month" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                                <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                                <i data-lucide="arrow-up-down" class="w-5 h-5"></i>
+                            </button>
+                            <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                                <i data-lucide="upload" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PNL Summary Bar -->
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-3xl font-bold text-teal-600" id="total-pnl">+$78.71</span>
+                            <div class="flex gap-4 text-sm">
+                                <span class="text-gray-600">
+                                    <span class="text-teal-600 font-semibold" id="winning-days">5</span> / $<span id="winning-amount">145</span>
+                                </span>
+                                <span class="text-gray-600">
+                                    <span class="text-pink-600 font-semibold" id="losing-days">4</span> / $<span id="losing-amount">66.29</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                            <div class="h-full flex">
+                                <div id="winning-bar" class="bg-teal-500" style="width: 68.6%"></div>
+                                <div id="losing-bar" class="bg-pink-500" style="width: 31.4%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Calendar Grid -->
+                    <div class="grid grid-cols-7 gap-1">
+                        <!-- Days of week header -->
+                        <div class="text-center py-2 text-sm font-medium text-gray-500">M</div>
+                        <div class="text-center py-2 text-sm font-medium text-gray-500">T</div>
+                        <div class="text-center py-2 text-sm font-medium text-gray-500">W</div>
+                        <div class="text-center py-2 text-sm font-medium text-gray-500">T</div>
+                        <div class="text-center py-2 text-sm font-medium text-gray-500">F</div>
+                        <div class="text-center py-2 text-sm font-medium text-gray-500">S</div>
+                        <div class="text-center py-2 text-sm font-medium text-gray-500">S</div>
+                        
+                        <!-- Calendar days will be populated by JavaScript -->
+                        <div id="calendar-days" class="contents">
+                            <!-- Days will be generated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div id="dashboard-content" class="hidden space-y-6">
+                <!-- Stats Grid -->
+                <div class="grid md:grid-cols-4 gap-4">
+                    <div class="p-6 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <i data-lucide="target" class="w-6 h-6"></i>
+                            <span class="text-2xl font-bold" id="total-sessions">0</span>
+                        </div>
+                        <h3 class="font-semibold mb-1">Total Sessions</h3>
+                        <p class="text-sm opacity-90">Sessions tracked</p>
+                    </div>
+                    <div class="p-6 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <i data-lucide="award" class="w-6 h-6"></i>
+                            <span class="text-2xl font-bold" id="avg-discipline">0/10</span>
+                        </div>
+                        <h3 class="font-semibold mb-1">Avg Discipline</h3>
+                        <p class="text-sm opacity-90">Overall fidelity</p>
+                    </div>
+                    <div class="p-6 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <i data-lucide="trending-up" class="w-6 h-6"></i>
+                            <span class="text-2xl font-bold" id="weekly-discipline">0/10</span>
+                        </div>
+                        <h3 class="font-semibold mb-1">Weekly Discipline</h3>
+                        <p class="text-sm opacity-90">Last 7 days</p>
+                    </div>
+                    <div class="p-6 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <i data-lucide="trophy" class="w-6 h-6"></i>
+                            <span class="text-2xl font-bold" id="invisible-value">25</span>
+                        </div>
+                        <h3 class="font-semibold mb-1">Invisible Value</h3>
+                        <p class="text-sm opacity-90">Points earned</p>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <i data-lucide="calendar" class="w-5 h-5 text-blue-600"></i>
+                            Recent Sessions
+                        </h3>
+                        <div id="recent-sessions" class="space-y-3">
+                            <p class="text-gray-500 text-center py-8">No sessions recorded yet</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <i data-lucide="trophy" class="w-5 h-5 text-orange-600"></i>
+                            Recent Invisible Wins
+                        </h3>
+                        <div id="recent-wins" class="space-y-3">
+                            <div class="border-l-4 border-orange-500 pl-4 py-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-medium">Quality Fold</span>
+                                    <span class="text-sm bg-orange-100 text-orange-800 px-2 py-1 rounded">+10</span>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-1">Folded marginal spot despite pot odds</p>
+                            </div>
+                            <div class="border-l-4 border-orange-500 pl-4 py-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-medium">Process Win</span>
+                                    <span class="text-sm bg-orange-100 text-orange-800 px-2 py-1 rounded">+15</span>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-1">Made correct play that lost</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- North Star Tab -->
+            <div id="northstar-content" class="hidden bg-white rounded-xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+                    <i data-lucide="star" class="w-6 h-6 text-yellow-500"></i>
+                    Your North Star
+                </h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Vision (What does billions look like?)</label>
+                        <textarea
+                            id="vision-text"
+                            placeholder="Describe your billion-dollar vision..."
+                            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            rows="4"
+                        ></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Identity (Who do you need to become?)</label>
+                        <textarea
+                            id="identity-text"
+                            placeholder="Describe the identity you need to embody..."
+                            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            rows="3"
+                        ></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Unbreakable Rules</label>
+                        <div class="flex gap-2 mb-3">
+                            <input
+                                id="new-rule-input"
+                                type="text"
+                                placeholder="Add a rule that must never be broken..."
+                                class="flex-1 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                            <button
+                                id="add-rule-btn"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                            >
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div id="rules-list" class="space-y-2">
+                            <!-- Rules will be added here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sessions Tab -->
+            <div id="sessions-content" class="hidden space-y-6">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold mb-6">Track Your Sessions</h2>
+                    
+                    <div class="grid md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Date</label>
+                            <input
+                                id="session-date"
+                                type="date"
+                                class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Discipline Fidelity (1-10)</label>
+                            <input
+                                id="session-discipline"
+                                type="number"
+                                min="1"
+                                max="10"
+                                value="5"
+                                class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2">Session Notes</label>
+                        <textarea
+                            id="session-notes"
+                            placeholder="Did I get sharper today? What did I learn?"
+                            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                            rows="3"
+                        ></textarea>
+                    </div>
+
+                    <button
+                        id="add-session-btn"
+                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"
+                    >
+                        Record Session
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold mb-4">Session History</h3>
+                    <div id="sessions-list" class="space-y-3">
+                        <p class="text-gray-500 text-center py-8">No sessions recorded yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invisible Wins Tab -->
+            <div id="invisible-content" class="hidden space-y-6">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold mb-6">Track Invisible Wins</h2>
+                    
+                    <div class="grid md:grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Type</label>
+                            <select id="win-type" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500">
+                                <option value="">Select type...</option>
+                                <option value="Quality Fold">Quality Fold</option>
+                                <option value="Marginal Pass">Marginal Pass</option>
+                                <option value="Process Win">Process Win</option>
+                                <option value="Discipline Hold">Discipline Hold</option>
+                                <option value="Long-term Play">Long-term Play</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Value Points</label>
+                            <input
+                                id="win-value"
+                                type="number"
+                                value="0"
+                                class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500"
+                                placeholder="0"
+                            />
+                        </div>
+                        <div class="flex items-end">
+                            <button
+                                id="add-win-btn"
+                                class="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"
+                            >
+                                Add Win
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2">Description</label>
+                        <textarea
+                            id="win-description"
+                            placeholder="What was the invisible win? Why does it matter long-term?"
+                            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500"
+                            rows="3"
+                        ></textarea>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold mb-4">Your Invisible Wins</h3>
+                    <div id="wins-list" class="grid md:grid-cols-2 gap-4">
+                        <div class="p-4 border-l-4 border-orange-500 bg-orange-50 rounded-r-lg">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-medium text-orange-800">Quality Fold</span>
+                                <span class="bg-orange-200 text-orange-800 px-2 py-1 rounded text-sm">+10</span>
+                            </div>
+                            <p class="text-gray-700 text-sm mb-1">Folded marginal spot despite pot odds</p>
+                            <p class="text-xs text-gray-500">Today</p>
+                        </div>
+                        <div class="p-4 border-l-4 border-orange-500 bg-orange-50 rounded-r-lg">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-medium text-orange-800">Process Win</span>
+                                <span class="bg-orange-200 text-orange-800 px-2 py-1 rounded text-sm">+15</span>
+                            </div>
+                            <p class="text-gray-700 text-sm mb-1">Made correct play that lost</p>
+                            <p class="text-xs text-gray-500">Today</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Prompts Tab -->
+            <div id="prompts-content" class="hidden bg-white rounded-xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+                    <i data-lucide="clock" class="w-6 h-6 text-blue-600"></i>
+                    Daily Perspective Prompts
+                </h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-blue-600">Morning Prompt</label>
+                        <textarea
+                            id="morning-prompt"
+                            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            rows="2"
+                        >What would the billion-dollar version of me do today?</textarea>
+                        <p class="text-xs text-gray-500 mt-1">Start each day by zooming out</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-purple-600">Evening Review</label>
+                        <textarea
+                            id="evening-prompt"
+                            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            rows="2"
+                        >Did I trade long-game EV for ego or boredom?</textarea>
+                        <p class="text-xs text-gray-500 mt-1">End each day with honest reflection</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-green-600">Weekly Review</label>
+                        <textarea
+                            id="weekly-prompt"
+                            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            rows="2"
+                        >How often did I follow my own edge, regardless of result?</textarea>
+                        <p class="text-xs text-gray-500 mt-1">Weekly discipline audit</p>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold mb-2">Remember:</h4>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>• Don't rely on motivation - automate perspective</li>
+                            <li>• Make long-term thinking a habit, not a mindset</li>
+                            <li>• Excellence is boring, but it's also unbeatable</li>
+                            <li>• You respect what you reward - reward the right things</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Recap Tab -->
+            <div id="dailyrecap-content" class="hidden space-y-6">
+                <!-- Daily Recap Log -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                        <i data-lucide="calendar-days" class="w-6 h-6 text-blue-600"></i>
+                        Daily Recap Log
+                    </h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full table-auto">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-600">Date</th>
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-600">Discipline Score</th>
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-600">Sessions</th>
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-600">Invisible Wins</th>
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-600">Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="daily-recap-table">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Daily Log Sheet -->
+                <div id="daily-log-sheet" class="hidden space-y-6">
+                    <button id="back-to-recap" class="text-blue-600 hover:text-blue-700 transition-colors duration-200 mb-4 self-start flex items-center gap-2">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        Back to Daily Recap
+                    </button>
+
+                    <!-- Overview Header -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <div>
+                            <p class="text-gray-500 text-sm">Date</p>
+                            <p id="log-date" class="text-xl font-bold text-gray-900"></p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Discipline Score</p>
+                            <p id="log-discipline" class="text-xl font-bold text-gray-900"></p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Sessions</p>
+                            <p id="log-sessions" class="text-xl font-bold text-gray-900"></p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Invisible Wins</p>
+                            <p id="log-wins" class="text-xl font-bold text-gray-900"></p>
+                        </div>
+                        <div class="col-span-2 md:col-span-1">
+                            <p class="text-gray-500 text-sm">Energy Level</p>
+                            <p id="log-energy" class="text-xl font-bold text-gray-900"></p>
+                        </div>
+                    </div>
+
+                    <!-- Daily Prompts Section -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                <i data-lucide="sunrise" class="w-5 h-5 text-yellow-500"></i>
+                                Morning Intentions
+                            </h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2 text-blue-600">What would the billion-dollar version of me do today?</label>
+                                    <textarea
+                                        id="morning-prompt-recap"
+                                        class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        rows="3"
+                                        placeholder="Start each day by zooming out..."
+                                    ></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2 text-purple-600">Key Focus Areas</label>
+                                    <textarea
+                                        id="focus-areas"
+                                        class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        rows="2"
+                                        placeholder="What are the 2-3 most important things today?"
+                                    ></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                <i data-lucide="moon" class="w-5 h-5 text-indigo-500"></i>
+                                Evening Reflection
+                            </h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2 text-green-600">Did I trade long-game EV for ego or boredom?</label>
+                                    <textarea
+                                        id="evening-prompt-recap"
+                                        class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                        rows="3"
+                                        placeholder="End each day with honest reflection..."
+                                    ></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2 text-orange-600">What did I learn today?</label>
+                                    <textarea
+                                        id="daily-learning"
+                                        class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        rows="2"
+                                        placeholder="Key insights and lessons..."
+                                    ></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Session Breakdown -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Session Breakdown</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full table-auto">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-600">Time</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-600">Activity</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-600">Quality</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-600">Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="session-breakdown-body">
+                                    <!-- Data will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Patterns and Insights -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-bold text-gray-900 mb-4">Patterns Caught Today</h3>
+                            <div id="patterns-caught" class="space-y-2 text-sm text-gray-600">
+                                <!-- Patterns will be populated by JavaScript -->
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-bold text-gray-900 mb-4">What Could've Been Better</h3>
+                            <div id="improvements" class="space-y-2 text-sm text-gray-600">
+                                <!-- Improvements will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Weekly Review Section -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <i data-lucide="calendar" class="w-5 h-5 text-green-500"></i>
+                            Weekly Review
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-green-600">How often did I follow my own edge, regardless of result?</label>
+                                <textarea
+                                    id="weekly-prompt-recap"
+                                    class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    rows="3"
+                                    placeholder="Weekly discipline audit..."
+                                ></textarea>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-2 text-gray-900">Remember:</h4>
+                                <ul class="text-sm text-gray-600 space-y-1">
+                                    <li>• Don't rely on motivation - automate perspective</li>
+                                    <li>• Make long-term thinking a habit, not a mindset</li>
+                                    <li>• Excellence is boring, but it's also unbeatable</li>
+                                    <li>• You respect what you reward - reward the right things</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Details Modal -->
+    <div id="daily-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
+                <h2 id="modal-date" class="text-2xl font-bold text-gray-900">August 4, 2025</h2>
+                <button id="close-modal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-6">
+                <!-- PNL Summary -->
+                <div class="bg-gradient-to-r from-teal-50 to-green-50 p-6 rounded-xl">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Daily PNL</h3>
+                            <div class="flex items-center gap-4 mt-2">
+                                <input 
+                                    id="modal-pnl-input" 
+                                    type="number" 
+                                    step="0.01" 
+                                    placeholder="0.00"
+                                    class="text-3xl font-bold border-0 bg-transparent w-32 focus:ring-2 focus:ring-blue-500 rounded px-2 py-1"
+                                />
+                                <span class="text-3xl font-bold text-gray-400">$</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-sm text-gray-600">Trades:</span>
+                                <input 
+                                    id="modal-trades-input" 
+                                    type="number" 
+                                    min="0"
+                                    class="w-16 text-sm font-semibold border border-gray-300 rounded px-2 py-1"
+                                />
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-600">Win Rate:</span>
+                                <input 
+                                    id="modal-winrate-input" 
+                                    type="number" 
+                                    min="0" 
+                                    max="100"
+                                    class="w-16 text-sm font-semibold border border-gray-300 rounded px-2 py-1"
+                                />
+                                <span class="text-sm text-gray-600">%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Prompts Section -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white border border-gray-200 rounded-xl p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <i data-lucide="sunrise" class="w-5 h-5 text-yellow-500"></i>
+                            Morning Intentions
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-blue-600">What would the billion-dollar version of me do today?</label>
+                                <textarea
+                                    id="modal-morning-prompt"
+                                    class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    rows="3"
+                                    placeholder="Start each day by zooming out..."
+                                ></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-purple-600">Key Focus Areas</label>
+                                <textarea
+                                    id="modal-focus-areas"
+                                    class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    rows="2"
+                                    placeholder="What are the 2-3 most important things today?"
+                                ></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-xl p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <i data-lucide="moon" class="w-5 h-5 text-indigo-500"></i>
+                            Evening Reflection
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-green-600">Did I trade long-game EV for ego or boredom?</label>
+                                <textarea
+                                    id="modal-evening-prompt"
+                                    class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    rows="3"
+                                    placeholder="End each day with honest reflection..."
+                                ></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-orange-600">What did I learn today?</label>
+                                <textarea
+                                    id="modal-daily-learning"
+                                    class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    rows="2"
+                                    placeholder="Key insights and lessons..."
+                                ></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trade Breakdown -->
+                <div class="bg-white border border-gray-200 rounded-xl p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-gray-900">Trade Breakdown</h3>
+                        <button id="add-trade-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                            + Add Trade
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full table-auto">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-600">Time</th>
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-600">Match</th>
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-600">Bet Type</th>
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-600">Stake</th>
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-600">PNL</th>
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-600">Result</th>
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-600">Notes</th>
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-600">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modal-trade-breakdown">
+                                <!-- Trade data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Patterns and Insights -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white border border-gray-200 rounded-xl p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-gray-900">Patterns Caught Today</h3>
+                            <button id="add-pattern-btn" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors">
+                                + Add Pattern
+                            </button>
+                        </div>
+                        <div id="modal-patterns-caught" class="space-y-2">
+                            <!-- Patterns will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-xl p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-gray-900">What Could've Been Better</h3>
+                            <button id="add-improvement-btn" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors">
+                                + Add Improvement
+                            </button>
+                        </div>
+                        <div id="modal-improvements" class="space-y-2">
+                            <!-- Improvements will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Save Button -->
+                <div class="flex justify-end">
+                    <button id="save-daily-data" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity">
+                        Save Daily Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // State management
+        let state = {
+            activeTab: 'pnl',
+            currentMonth: new Date().getMonth(),
+            currentYear: new Date().getFullYear(),
+            sessions: [],
+            invisibleWins: [
+                { type: 'Quality Fold', description: 'Folded marginal spot despite pot odds', value: 10, date: new Date().toISOString().split('T')[0] },
+                { type: 'Process Win', description: 'Made correct play that lost', value: 15, date: new Date().toISOString().split('T')[0] }
+            ],
+            rules: [],
+            pnlData: {
+                // Start with empty data - you can input your own PNL
+            }
+        };
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all content
+            document.querySelectorAll('[id$="-content"]').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('[id$="-tab"]').forEach(tab => {
+                tab.classList.remove('tab-active');
+                tab.classList.add('tab-inactive');
+            });
+            
+            // Show selected content and activate tab
+            document.getElementById(tabName + '-content').classList.remove('hidden');
+            document.getElementById(tabName + '-tab').classList.remove('tab-inactive');
+            document.getElementById(tabName + '-tab').classList.add('tab-active');
+            
+            state.activeTab = tabName;
+            updateStats();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const totalSessions = state.sessions.length;
+            const avgDiscipline = state.sessions.length > 0 
+                ? (state.sessions.reduce((acc, s) => acc + s.disciplineFidelity, 0) / state.sessions.length).toFixed(1)
+                : 0;
+            const totalInvisibleValue = state.invisibleWins.reduce((acc, w) => acc + w.value, 0);
+            
+            const recentSessions = state.sessions.filter(s => {
+                const sessionDate = new Date(s.date);
+                const weekAgo = new Date();
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                return sessionDate >= weekAgo;
+            });
+            
+            const weeklyDiscipline = recentSessions.length > 0 
+                ? (recentSessions.reduce((acc, s) => acc + s.disciplineFidelity, 0) / recentSessions.length).toFixed(1)
+                : 0;
+
+            document.getElementById('total-sessions').textContent = totalSessions;
+            document.getElementById('avg-discipline').textContent = `${avgDiscipline}/10`;
+            document.getElementById('weekly-discipline').textContent = `${weeklyDiscipline}/10`;
+            document.getElementById('invisible-value').textContent = totalInvisibleValue;
+        }
+
+        // Add session
+        function addSession() {
+            const date = document.getElementById('session-date').value || new Date().toISOString().split('T')[0];
+            const discipline = parseInt(document.getElementById('session-discipline').value) || 5;
+            const notes = document.getElementById('session-notes').value;
+
+            const session = {
+                id: Date.now(),
+                date: date,
+                disciplineFidelity: discipline,
+                notes: notes,
+                timestamp: new Date().toISOString()
+            };
+
+            state.sessions.unshift(session);
+            updateSessionsList();
+            updateStats();
+            
+            // Clear form
+            document.getElementById('session-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('session-discipline').value = 5;
+            document.getElementById('session-notes').value = '';
+        }
+
+        // Update sessions list
+        function updateSessionsList() {
+            const container = document.getElementById('sessions-list');
+            const recentContainer = document.getElementById('recent-sessions');
+            
+            if (state.sessions.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">No sessions recorded yet</p>';
+                recentContainer.innerHTML = '<p class="text-gray-500 text-center py-8">No sessions recorded yet</p>';
+                return;
+            }
+
+            // Full sessions list
+            container.innerHTML = state.sessions.map(session => `
+                <div class="p-4 border rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-medium">${session.date}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-gray-600">Discipline:</span>
+                            <span class="px-2 py-1 rounded text-sm ${
+                                session.disciplineFidelity >= 8 ? 'bg-green-100 text-green-800' :
+                                session.disciplineFidelity >= 6 ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-red-100 text-red-800'
+                            }">
+                                ${session.disciplineFidelity}/10
+                            </span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600">${session.notes || 'No notes'}</p>
+                </div>
+            `).join('');
+
+            // Recent sessions (first 5)
+            recentContainer.innerHTML = state.sessions.slice(0, 5).map(session => `
+                <div class="border-l-4 border-blue-500 pl-4 py-2">
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium">${session.date}</span>
+                        <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                            ${session.disciplineFidelity}/10
+                        </span>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">${session.notes || 'No notes'}</p>
+                </div>
+            `).join('');
+        }
+
+        // Add invisible win
+        function addInvisibleWin() {
+            const type = document.getElementById('win-type').value;
+            const value = parseInt(document.getElementById('win-value').value) || 0;
+            const description = document.getElementById('win-description').value;
+
+            if (!description.trim()) return;
+
+            const win = {
+                id: Date.now(),
+                type: type,
+                value: value,
+                description: description,
+                date: new Date().toISOString().split('T')[0]
+            };
+
+            state.invisibleWins.unshift(win);
+            updateWinsList();
+            updateStats();
+            
+            // Clear form
+            document.getElementById('win-type').value = '';
+            document.getElementById('win-value').value = 0;
+            document.getElementById('win-description').value = '';
+        }
+
+        // Update wins list
+        function updateWinsList() {
+            const container = document.getElementById('wins-list');
+            const recentContainer = document.getElementById('recent-wins');
+            
+            if (state.invisibleWins.length === 0) {
+                container.innerHTML = '<p class="col-span-2 text-gray-500 text-center py-8">No invisible wins recorded yet</p>';
+                recentContainer.innerHTML = '<p class="text-gray-500 text-center py-8">No invisible wins recorded yet</p>';
+                return;
+            }
+
+            // Full wins list
+            container.innerHTML = state.invisibleWins.map(win => `
+                <div class="p-4 border-l-4 border-orange-500 bg-orange-50 rounded-r-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-medium text-orange-800">${win.type}</span>
+                        <span class="bg-orange-200 text-orange-800 px-2 py-1 rounded text-sm">
+                            +${win.value}
+                        </span>
+                    </div>
+                    <p class="text-gray-700 text-sm mb-1">${win.description}</p>
+                    <p class="text-xs text-gray-500">${win.date}</p>
+                </div>
+            `).join('');
+
+            // Recent wins (first 5)
+            recentContainer.innerHTML = state.invisibleWins.slice(0, 5).map(win => `
+                <div class="border-l-4 border-orange-500 pl-4 py-2">
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium">${win.type}</span>
+                        <span class="text-sm bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                            +${win.value}
+                        </span>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">${win.description}</p>
+                </div>
+            `).join('');
+        }
+
+        // Add rule
+        function addRule() {
+            const input = document.getElementById('new-rule-input');
+            const rule = input.value.trim();
+            
+            if (!rule) return;
+            
+            state.rules.push(rule);
+            updateRulesList();
+            input.value = '';
+        }
+
+        // Update rules list
+        function updateRulesList() {
+            const container = document.getElementById('rules-list');
+            container.innerHTML = state.rules.map((rule, index) => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span>${rule}</span>
+                    <button onclick="removeRule(${index})" class="text-red-500 hover:text-red-700 ml-2">×</button>
+                </div>
+            `).join('');
+        }
+
+        // Remove rule
+        function removeRule(index) {
+            state.rules.splice(index, 1);
+            updateRulesList();
+        }
+
+        // Populate daily recap table
+        function populateDailyRecapTable() {
+            const container = document.getElementById('daily-recap-table');
+            container.innerHTML = state.dailyLogs.map(log => `
+                <tr class="border-b border-gray-200 hover:bg-gray-50">
+                    <td class="py-3 px-4">${log.date}</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-1 rounded text-sm ${
+                            parseInt(log.disciplineScore) >= 8 ? 'bg-green-100 text-green-800' :
+                            parseInt(log.disciplineScore) >= 6 ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                        }">
+                            ${log.disciplineScore}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">${log.sessions}</td>
+                    <td class="py-3 px-4">${log.invisibleWins}</td>
+                    <td class="py-3 px-4">
+                        <a href="#" class="text-blue-600 hover:underline" data-log-id="${log.id}">
+                            ${log.notes}
+                        </a>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Populate daily log sheet
+        function populateDailyLogSheet(log) {
+            document.getElementById('log-date').textContent = log.date;
+            document.getElementById('log-discipline').textContent = log.disciplineScore;
+            document.getElementById('log-sessions').textContent = log.sessions;
+            document.getElementById('log-wins').textContent = log.invisibleWins;
+            document.getElementById('log-energy').textContent = log.energyLevel;
+
+            // Populate prompts
+            document.getElementById('morning-prompt-recap').value = log.morningPrompt || '';
+            document.getElementById('focus-areas').value = log.focusAreas || '';
+            document.getElementById('evening-prompt-recap').value = log.eveningPrompt || '';
+            document.getElementById('daily-learning').value = log.dailyLearning || '';
+            document.getElementById('weekly-prompt-recap').value = 'How often did I follow my own edge, regardless of result?';
+
+            // Populate session breakdown
+            const sessionContainer = document.getElementById('session-breakdown-body');
+            sessionContainer.innerHTML = log.sessionBreakdown.map(session => `
+                <tr class="border-b border-gray-200">
+                    <td class="py-3 px-4">${session.time}</td>
+                    <td class="py-3 px-4">${session.activity}</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-1 rounded text-sm ${
+                            session.quality === 'High' ? 'bg-green-100 text-green-800' :
+                            session.quality === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                        }">
+                            ${session.quality}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">${session.notes}</td>
+                </tr>
+            `).join('');
+
+            // Populate patterns and improvements
+            document.getElementById('patterns-caught').innerHTML = log.patternsCaught.map(pattern => 
+                `<p>• ${pattern}</p>`
+            ).join('');
+            
+            document.getElementById('improvements').innerHTML = log.improvements.map(improvement => 
+                `<p>• ${improvement}</p>`
+            ).join('');
+        }
+
+        // Show daily log sheet
+        function showDailyLogSheet(logId) {
+            const log = state.dailyLogs.find(l => l.id === logId);
+            if (log) {
+                populateDailyLogSheet(log);
+                document.getElementById('daily-log-sheet').classList.remove('hidden');
+                document.getElementById('daily-recap-table').parentElement.parentElement.classList.add('hidden');
+            }
+        }
+
+        // Show daily recap table
+        function showDailyRecapTable() {
+            document.getElementById('daily-log-sheet').classList.add('hidden');
+            document.getElementById('daily-recap-table').parentElement.parentElement.classList.remove('hidden');
+        }
+
+        // Generate calendar
+        function generateCalendar() {
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const firstDay = new Date(state.currentYear, state.currentMonth, 1);
+            const lastDay = new Date(state.currentYear, state.currentMonth + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+            
+            // Update month display
+            document.getElementById('current-month').textContent = `${monthNames[state.currentMonth]} ${state.currentYear}`;
+            
+            // Calculate PNL summary
+            let totalPnl = 0;
+            let winningDays = 0;
+            let losingDays = 0;
+            let winningAmount = 0;
+            let losingAmount = 0;
+            
+            Object.keys(state.pnlData).forEach(date => {
+                const pnl = state.pnlData[date].pnl;
+                totalPnl += pnl;
+                if (pnl > 0) {
+                    winningDays++;
+                    winningAmount += pnl;
+                } else if (pnl < 0) {
+                    losingDays++;
+                    losingAmount += Math.abs(pnl);
+                }
+            });
+            
+            // Update summary
+            document.getElementById('total-pnl').textContent = totalPnl >= 0 ? `+$${totalPnl.toFixed(2)}` : `-$${Math.abs(totalPnl).toFixed(2)}`;
+            document.getElementById('total-pnl').className = totalPnl >= 0 ? 'text-3xl font-bold text-teal-600' : 'text-3xl font-bold text-pink-600';
+            document.getElementById('winning-days').textContent = winningDays;
+            document.getElementById('winning-amount').textContent = winningAmount.toFixed(0);
+            document.getElementById('losing-days').textContent = losingDays;
+            document.getElementById('losing-amount').textContent = losingAmount.toFixed(2);
+            
+            const totalAmount = winningAmount + losingAmount;
+            const winningPercentage = totalAmount > 0 ? (winningAmount / totalAmount) * 100 : 0;
+            document.getElementById('winning-bar').style.width = `${winningPercentage}%`;
+            document.getElementById('losing-bar').style.width = `${100 - winningPercentage}%`;
+            
+            // Generate calendar days
+            const calendarContainer = document.getElementById('calendar-days');
+            calendarContainer.innerHTML = '';
+            
+            // Add empty cells for days before month starts
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'h-20 border border-gray-200 rounded-lg bg-gray-50';
+                calendarContainer.appendChild(emptyDay);
+            }
+            
+            // Add days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${state.currentYear}-${String(state.currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayData = state.pnlData[dateStr];
+                const dayElement = document.createElement('div');
+                dayElement.className = 'h-20 border border-gray-200 rounded-lg p-2 cursor-pointer hover:bg-gray-50 transition-colors';
+                dayElement.onclick = () => openDailyModal(dateStr);
+                
+                if (dayData) {
+                    const pnl = dayData.pnl;
+                    let bgColor = 'bg-gray-100';
+                    let textColor = 'text-gray-500';
+                    
+                    if (pnl > 0) {
+                        if (pnl >= 40) {
+                            bgColor = 'bg-green-100';
+                            textColor = 'text-green-800';
+                        } else {
+                            bgColor = 'bg-teal-100';
+                            textColor = 'text-teal-800';
+                        }
+                    } else if (pnl < 0) {
+                        bgColor = 'bg-pink-100';
+                        textColor = 'text-pink-800';
+                    }
+                    
+                    dayElement.className += ` ${bgColor}`;
+                    dayElement.innerHTML = `
+                        <div class="text-sm font-medium ${textColor}">${day}</div>
+                        <div class="text-xs ${textColor} font-semibold">${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}</div>
+                        <div class="text-xs text-gray-500">${dayData.trades} trades</div>
+                    `;
+                } else {
+                    dayElement.innerHTML = `
+                        <div class="text-sm font-medium text-gray-400">${day}</div>
+                        <div class="text-xs text-gray-400">$0.00</div>
+                        <div class="text-xs text-gray-400">0 trades</div>
+                    `;
+                }
+                
+                calendarContainer.appendChild(dayElement);
+            }
+        }
+
+        // Open daily modal
+        function openDailyModal(dateStr) {
+            const dayData = state.pnlData[dateStr] || {
+                pnl: 0, trades: 0, winRate: 0, morningPrompt: '', focusAreas: '', eveningPrompt: '', dailyLearning: '', patterns: [], improvements: [], individualTrades: []
+            };
+            
+            const date = new Date(dateStr);
+            const formattedDate = date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            document.getElementById('modal-date').textContent = formattedDate;
+            
+            // Populate editable fields
+            document.getElementById('modal-pnl-input').value = dayData.pnl || '';
+            document.getElementById('modal-trades-input').value = dayData.trades || '';
+            document.getElementById('modal-winrate-input').value = dayData.winRate || '';
+            
+            // Populate form fields
+            document.getElementById('modal-morning-prompt').value = dayData.morningPrompt || '';
+            document.getElementById('modal-focus-areas').value = dayData.focusAreas || '';
+            document.getElementById('modal-evening-prompt').value = dayData.eveningPrompt || '';
+            document.getElementById('modal-daily-learning').value = dayData.dailyLearning || '';
+            
+            // Populate trade breakdown
+            renderTradeBreakdown(dayData.individualTrades || []);
+            
+            // Populate patterns and improvements
+            renderPatterns(dayData.patterns || []);
+            renderImprovements(dayData.improvements || []);
+            
+            // Store current date for saving
+            document.getElementById('daily-modal').dataset.currentDate = dateStr;
+            
+            // Show modal
+            document.getElementById('daily-modal').classList.remove('hidden');
+        }
+
+        // Render trade breakdown table
+        function renderTradeBreakdown(trades) {
+            const tradeContainer = document.getElementById('modal-trade-breakdown');
+            if (trades.length === 0) {
+                tradeContainer.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="py-8 text-center text-gray-500">
+                            No trades added yet. Click "Add Trade" to get started.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tradeContainer.innerHTML = trades.map((trade, index) => `
+                <tr class="border-b border-gray-200">
+                    <td class="py-3 px-4">
+                        <input type="text" value="${trade.time || ''}" 
+                               class="w-full p-1 border rounded text-sm" 
+                               onchange="updateTrade(${index}, 'time', this.value)">
+                    </td>
+                    <td class="py-3 px-4">
+                        <input type="text" value="${trade.match || ''}" 
+                               class="w-full p-1 border rounded text-sm" 
+                               onchange="updateTrade(${index}, 'match', this.value)">
+                    </td>
+                    <td class="py-3 px-4">
+                        <input type="text" value="${trade.betType || ''}" 
+                               class="w-full p-1 border rounded text-sm" 
+                               onchange="updateTrade(${index}, 'betType', this.value)">
+                    </td>
+                    <td class="py-3 px-4">
+                        <input type="number" step="0.01" value="${trade.stake || ''}" 
+                               class="w-full p-1 border rounded text-sm" 
+                               onchange="updateTrade(${index}, 'stake', this.value)">
+                    </td>
+                    <td class="py-3 px-4">
+                        <input type="number" step="0.01" value="${trade.pnl || ''}" 
+                               class="w-full p-1 border rounded text-sm ${trade.pnl >= 0 ? 'text-green-600' : 'text-red-600'}" 
+                               onchange="updateTrade(${index}, 'pnl', this.value); updateTotalPnl()">
+                    </td>
+                    <td class="py-3 px-4">
+                        <select class="w-full p-1 border rounded text-sm" 
+                                onchange="updateTrade(${index}, 'result', this.value)">
+                            <option value="Win" ${trade.result === 'Win' ? 'selected' : ''}>Win</option>
+                            <option value="Loss" ${trade.result === 'Loss' ? 'selected' : ''}>Loss</option>
+                            <option value="Push" ${trade.result === 'Push' ? 'selected' : ''}>Push</option>
+                        </select>
+                    </td>
+                    <td class="py-3 px-4">
+                        <input type="text" value="${trade.notes || ''}" 
+                               class="w-full p-1 border rounded text-sm" 
+                               onchange="updateTrade(${index}, 'notes', this.value)">
+                    </td>
+                    <td class="py-3 px-4">
+                        <button onclick="removeTrade(${index})" 
+                                class="text-red-500 hover:text-red-700 text-sm font-medium">
+                            Remove
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Add new trade
+        function addTrade() {
+            const currentDate = document.getElementById('daily-modal').dataset.currentDate;
+            if (!currentDate) return;
+            
+            if (!state.pnlData[currentDate]) {
+                state.pnlData[currentDate] = { individualTrades: [] };
+            }
+            if (!state.pnlData[currentDate].individualTrades) {
+                state.pnlData[currentDate].individualTrades = [];
+            }
+            
+            const newTrade = {
+                time: '',
+                match: '',
+                betType: '',
+                stake: '',
+                pnl: '',
+                result: 'Win',
+                notes: ''
+            };
+            
+            state.pnlData[currentDate].individualTrades.push(newTrade);
+            renderTradeBreakdown(state.pnlData[currentDate].individualTrades);
+        }
+
+        // Update trade data
+        function updateTrade(index, field, value) {
+            const currentDate = document.getElementById('daily-modal').dataset.currentDate;
+            if (!currentDate) return;
+            
+            if (state.pnlData[currentDate] && state.pnlData[currentDate].individualTrades) {
+                state.pnlData[currentDate].individualTrades[index][field] = value;
+            }
+        }
+
+        // Remove trade
+        function removeTrade(index) {
+            const currentDate = document.getElementById('daily-modal').dataset.currentDate;
+            if (!currentDate) return;
+            
+            if (state.pnlData[currentDate] && state.pnlData[currentDate].individualTrades) {
+                state.pnlData[currentDate].individualTrades.splice(index, 1);
+                renderTradeBreakdown(state.pnlData[currentDate].individualTrades);
+                updateTotalPnl();
+            }
+        }
+
+        // Update total PNL based on individual trades
+        function updateTotalPnl() {
+            const currentDate = document.getElementById('daily-modal').dataset.currentDate;
+            if (!currentDate) return;
+            
+            const trades = state.pnlData[currentDate]?.individualTrades || [];
+            const totalPnl = trades.reduce((sum, trade) => sum + (parseFloat(trade.pnl) || 0), 0);
+            const winCount = trades.filter(trade => trade.result === 'Win').length;
+            const totalTrades = trades.length;
+            const winRate = totalTrades > 0 ? Math.round((winCount / totalTrades) * 100) : 0;
+            
+            // Update the main PNL input
+            document.getElementById('modal-pnl-input').value = totalPnl.toFixed(2);
+            document.getElementById('modal-trades-input').value = totalTrades;
+            document.getElementById('modal-winrate-input').value = winRate;
+        }
+
+        // Render patterns with input functionality
+        function renderPatterns(patterns) {
+            const container = document.getElementById('modal-patterns-caught');
+            if (patterns.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 py-4">
+                        No patterns added yet. Click "Add Pattern" to get started.
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = patterns.map((pattern, index) => `
+                <div class="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
+                    <input type="text" value="${pattern}" 
+                           class="flex-1 p-2 border rounded text-sm" 
+                           onchange="updatePattern(${index}, this.value)">
+                    <button onclick="removePattern(${index})" 
+                            class="text-red-500 hover:text-red-700 text-sm font-medium">
+                        Remove
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Render improvements with input functionality
+        function renderImprovements(improvements) {
+            const container = document.getElementById('modal-improvements');
+            if (improvements.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 py-4">
+                        No improvements added yet. Click "Add Improvement" to get started.
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = improvements.map((improvement, index) => `
+                <div class="flex items-center gap-2 p-2 bg-orange-50 rounded-lg">
+                    <input type="text" value="${improvement}" 
+                           class="flex-1 p-2 border rounded text-sm" 
+                           onchange="updateImprovement(${index}, this.value)">
+                    <button onclick="removeImprovement(${index})" 
+                            class="text-red-500 hover:text-red-700 text-sm font-medium">
+                        Remove
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Add new pattern
+        function addPattern() {
+            const currentDate = document.getElementById('daily-modal').dataset.currentDate;
+            if (!currentDate) return;
+            
+            if (!state.pnlData[currentDate]) {
+                state.pnlData[currentDate] = { patterns: [] };
+            }
+            if (!state.pnlData[currentDate].patterns) {
+                state.pnlData[currentDate].patterns = [];
+            }
+            
+            state.pnlData[currentDate].patterns.push('');
+            renderPatterns(state.pnlData[currentDate].patterns);
+        }
+
+        // Add new improvement
+        function addImprovement() {
+            const currentDate = document.getElementById('daily-modal').dataset.currentDate;
+            if (!currentDate) return;
+            
+            if (!state.pnlData[currentDate]) {
+                state.pnlData[currentDate] = { improvements: [] };
+            }
+            if (!state.pnlData[currentDate].improvements) {
+                state.pnlData[currentDate].improvements = [];
+            }
+            
+            state.pnlData[currentDate].improvements.push('');
+            renderImprovements(state.pnlData[currentDate].improvements);
+        }
+
+        // Update pattern
+        function updatePattern(index, value) {
+            const currentDate = document.getElementById('daily-modal').dataset.currentDate;
+            if (!currentDate) return;
+            
+            if (state.pnlData[currentDate] && state.pnlData[currentDate].patterns) {
+                state.pnlData[currentDate].patterns[index] = value;
+            }
+        }
+
+        // Update improvement
+        function updateImprovement(index, value) {
+            const currentDate = document.getElementById('daily-modal').dataset.currentDate;
+            if (!currentDate) return;
+            
+            if (state.pnlData[currentDate] && state.pnlData[currentDate].improvements) {
+                state.pnlData[currentDate].improvements[index] = value;
+            }
+        }
+
+        // Remove pattern
+        function removePattern(index) {
+            const currentDate = document.getElementById('daily-modal').dataset.currentDate;
+            if (!currentDate) return;
+            
+            if (state.pnlData[currentDate] && state.pnlData[currentDate].patterns) {
+                state.pnlData[currentDate].patterns.splice(index, 1);
+                renderPatterns(state.pnlData[currentDate].patterns);
+            }
+        }
+
+        // Remove improvement
+        function removeImprovement(index) {
+            const currentDate = document.getElementById('daily-modal').dataset.currentDate;
+            if (!currentDate) return;
+            
+            if (state.pnlData[currentDate] && state.pnlData[currentDate].improvements) {
+                state.pnlData[currentDate].improvements.splice(index, 1);
+                renderImprovements(state.pnlData[currentDate].improvements);
+            }
+        }
+
+        // Close daily modal
+        function closeDailyModal() {
+            document.getElementById('daily-modal').classList.add('hidden');
+        }
+
+        // Save daily data
+        function saveDailyData() {
+            const currentDate = document.getElementById('daily-modal').dataset.currentDate;
+            if (!currentDate) return;
+            
+            // Get form values
+            const pnl = parseFloat(document.getElementById('modal-pnl-input').value) || 0;
+            const trades = parseInt(document.getElementById('modal-trades-input').value) || 0;
+            const winRate = parseInt(document.getElementById('modal-winrate-input').value) || 0;
+            const morningPrompt = document.getElementById('modal-morning-prompt').value;
+            const focusAreas = document.getElementById('modal-focus-areas').value;
+            const eveningPrompt = document.getElementById('modal-evening-prompt').value;
+            const dailyLearning = document.getElementById('modal-daily-learning').value;
+            
+            // Update state
+            state.pnlData[currentDate] = {
+                ...state.pnlData[currentDate],
+                pnl: pnl,
+                trades: trades,
+                winRate: winRate,
+                morningPrompt: morningPrompt,
+                focusAreas: focusAreas,
+                eveningPrompt: eveningPrompt,
+                dailyLearning: dailyLearning,
+                patterns: state.pnlData[currentDate]?.patterns || [],
+                improvements: state.pnlData[currentDate]?.improvements || [],
+                individualTrades: state.pnlData[currentDate]?.individualTrades || []
+            };
+            
+            // Refresh calendar
+            generateCalendar();
+            
+            // Close modal
+            closeDailyModal();
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching
+            document.getElementById('pnl-tab').addEventListener('click', () => switchTab('pnl'));
+            document.getElementById('dashboard-tab').addEventListener('click', () => switchTab('dashboard'));
+            document.getElementById('northstar-tab').addEventListener('click', () => switchTab('northstar'));
+            document.getElementById('sessions-tab').addEventListener('click', () => switchTab('sessions'));
+            document.getElementById('invisible-tab').addEventListener('click', () => switchTab('invisible'));
+            document.getElementById('prompts-tab').addEventListener('click', () => switchTab('prompts'));
+
+            // Session form
+            document.getElementById('add-session-btn').addEventListener('click', addSession);
+            document.getElementById('session-date').value = new Date().toISOString().split('T')[0];
+
+            // Invisible wins form
+            document.getElementById('add-win-btn').addEventListener('click', addInvisibleWin);
+
+            // Rules form
+            document.getElementById('add-rule-btn').addEventListener('click', addRule);
+            document.getElementById('new-rule-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addRule();
+            });
+
+            // PNL Calendar functionality
+            document.getElementById('prev-month').addEventListener('click', () => {
+                state.currentMonth--;
+                if (state.currentMonth < 0) {
+                    state.currentMonth = 11;
+                    state.currentYear--;
+                }
+                generateCalendar();
+            });
+
+            document.getElementById('next-month').addEventListener('click', () => {
+                state.currentMonth++;
+                if (state.currentMonth > 11) {
+                    state.currentMonth = 0;
+                    state.currentYear++;
+                }
+                generateCalendar();
+            });
+
+            // Modal functionality
+            document.getElementById('close-modal').addEventListener('click', closeDailyModal);
+            document.getElementById('save-daily-data').addEventListener('click', saveDailyData);
+            document.getElementById('add-trade-btn').addEventListener('click', addTrade);
+            document.getElementById('add-pattern-btn').addEventListener('click', addPattern);
+            document.getElementById('add-improvement-btn').addEventListener('click', addImprovement);
+
+            // Close modal when clicking outside
+            document.getElementById('daily-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'daily-modal') {
+                    closeDailyModal();
+                }
+            });
+
+            // Daily recap functionality
+            document.getElementById('back-to-recap').addEventListener('click', (e) => {
+                e.preventDefault();
+                showDailyRecapTable();
+            });
+
+            // Handle clicks on daily recap table rows
+            document.addEventListener('click', (e) => {
+                if (e.target.matches('[data-log-id]')) {
+                    e.preventDefault();
+                    const logId = e.target.dataset.logId;
+                    showDailyLogSheet(logId);
+                }
+            });
+
+            // Initialize
+            generateCalendar();
+            updateStats();
+            updateSessionsList();
+            updateWinsList();
+        });
+    </script>
+</body>
+</html>
