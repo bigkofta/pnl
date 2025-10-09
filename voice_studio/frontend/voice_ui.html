@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Cloning Studio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            height: 120px;
+            resize: vertical;
+        }
+
+        .voice-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .voice-option {
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .voice-option:hover {
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+
+        .voice-option.selected {
+            border-color: #667eea;
+            background-color: #667eea;
+            color: white;
+        }
+
+        .style-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .style-option {
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .style-option:hover {
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+
+        .style-option.selected {
+            border-color: #667eea;
+            background-color: #667eea;
+            color: white;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .status.loading {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .audio-player {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .audio-player audio {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .download-btn {
+            margin-top: 15px;
+            padding: 12px 25px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .download-btn:hover {
+            background: #218838;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎤 Voice Cloning Studio</h1>
+            <p>Generate high-quality voice clones with different styles</p>
+        </div>
+
+        <div class="form-container">
+            <form id="voiceForm">
+                <div class="form-group">
+                    <label for="script">Script to Generate:</label>
+                    <textarea 
+                        id="script" 
+                        placeholder="Enter the text you want to convert to speech..."
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Voice:</label>
+                    <div class="voice-options">
+                        <div class="voice-option" data-voice="anisimova_segment1.mp3">
+                            <strong>Anisimova</strong><br>
+                            <small>Segment 1</small>
+                        </div>
+                        <div class="voice-option" data-voice="anisimova_segment2.mp3">
+                            <strong>Anisimova</strong><br>
+                            <small>Segment 2</small>
+                        </div>
+                        <div class="voice-option" data-voice="mel.MP3">
+                            <strong>Mel</strong><br>
+                            <small>Voice Sample</small>
+                        </div>
+                        <div class="voice-option" data-voice="swiatek_voice_segment1.mp3">
+                            <strong>Swiatek</strong><br>
+                            <small>Segment 1</small>
+                        </div>
+                        <div class="voice-option" data-voice="swiatek_voice_segment2.mp3">
+                            <strong>Swiatek</strong><br>
+                            <small>Segment 2</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Style:</label>
+                    <div class="style-options">
+                        <div class="style-option" data-style="normal">
+                            <strong>Normal</strong><br>
+                            <small>Balanced</small>
+                        </div>
+                        <div class="style-option" data-style="sassy">
+                            <strong>Sassy</strong><br>
+                            <small>Energetic</small>
+                        </div>
+                        <div class="style-option" data-style="roast">
+                            <strong>Roast</strong><br>
+                            <small>Aggressive</small>
+                        </div>
+                        <div class="style-option" data-style="calm">
+                            <strong>Calm</strong><br>
+                            <small>Relaxed</small>
+                        </div>
+                        <div class="style-option" data-style="hype">
+                            <strong>Hype</strong><br>
+                            <small>Excited</small>
+                        </div>
+                        <div class="style-option" data-style="confident">
+                            <strong>Confident</strong><br>
+                            <small>Strong</small>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="generate-btn" id="generateBtn">
+                    🎵 Generate Voice
+                </button>
+            </form>
+
+            <div id="status" class="status hidden"></div>
+            <div id="audioPlayer" class="audio-player hidden">
+                <audio id="audioElement" controls></audio>
+                <br>
+                <a id="downloadBtn" class="download-btn" href="#" download>📥 Download Audio</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedVoice = null;
+        let selectedStyle = null;
+
+        // Voice selection
+        document.querySelectorAll('.voice-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.voice-option').forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedVoice = option.dataset.voice;
+            });
+        });
+
+        // Style selection
+        document.querySelectorAll('.style-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.style-option').forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedStyle = option.dataset.style;
+            });
+        });
+
+        // Form submission
+        document.getElementById('voiceForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!selectedVoice || !selectedStyle) {
+                showStatus('Please select both a voice and style!', 'error');
+                return;
+            }
+
+            const script = document.getElementById('script').value.trim();
+            if (!script) {
+                showStatus('Please enter a script!', 'error');
+                return;
+            }
+
+            await generateVoice(script, selectedVoice, selectedStyle);
+        });
+
+        async function generateVoice(script, voice, style) {
+            const generateBtn = document.getElementById('generateBtn');
+            const status = document.getElementById('status');
+            const audioPlayer = document.getElementById('audioPlayer');
+            
+            // Show loading state
+            generateBtn.disabled = true;
+            generateBtn.textContent = '⏳ Generating...';
+            showStatus('Generating voice... This may take 30-60 seconds.', 'loading');
+            audioPlayer.classList.add('hidden');
+
+            try {
+                const response = await fetch('http://localhost:8000/v1/synthesize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: script,
+                        voice_file: voice,
+                        style: style
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('✅ Voice generated successfully!', 'success');
+                    
+                    // Play audio - the API returns a file path, so we need to serve it
+                    const audioElement = document.getElementById('audioElement');
+                    const downloadBtn = document.getElementById('downloadBtn');
+                    
+                    // The API returns output_file path, we need to serve it via the API
+                    const audioUrl = `http://localhost:8000/audio/${result.output_file}`;
+                    audioElement.src = audioUrl;
+                    downloadBtn.href = audioUrl;
+                    downloadBtn.download = result.output_file;
+                    
+                    audioPlayer.classList.remove('hidden');
+                } else {
+                    throw new Error(result.error || 'Unknown error occurred');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`❌ Error: ${error.message}`, 'error');
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = '🎵 Generate Voice';
+            }
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.classList.remove('hidden');
+        }
+
+        // Auto-select first options
+        document.querySelector('.voice-option').click();
+        document.querySelector('.style-option').click();
+    </script>
+</body>
+</html>

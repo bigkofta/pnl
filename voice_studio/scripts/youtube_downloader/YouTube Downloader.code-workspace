@@ -1,0 +1,58 @@
+{
+  "folders": [
+    {
+      "name": "🎵 YouTube Downloader",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "terminal.integrated.defaultProfile.osx": "zsh",
+    "terminal.integrated.cwd": "/Users/steve/untitled folder 15",
+    "files.defaultLanguage": "python",
+    "editor.fontSize": 14,
+    "terminal.integrated.fontSize": 13
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python"
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "📺 Download YouTube Segment",
+        "type": "shell",
+        "command": "python",
+        "args": ["cursor-downloader.py"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "new"
+        }
+      },
+      {
+        "label": "⚙️ Show Settings",
+        "type": "shell",
+        "command": "python",
+        "args": ["cursor-downloader.py", "settings"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "new"
+        }
+      },
+      {
+        "label": "🛠️ Edit Settings",
+        "type": "shell",
+        "command": "./manage-settings",
+        "args": ["edit"],
+        "group": "build"
+      }
+    ]
+  }
+} 

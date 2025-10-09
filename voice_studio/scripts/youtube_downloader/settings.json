@@ -1,0 +1,20 @@
+{
+  "output_format": "mp3",
+  "output_directory": "/Users/steve/Downloads/YouTube Audio",
+  "audio_quality": "best",
+  "video_quality": "720p",
+  "auto_create_directory": true,
+  "default_fade_in": 0,
+  "default_fade_out": 0,
+  "combine_by_default": false,
+  "file_naming": {
+    "include_timestamp": true,
+    "include_title": true,
+    "sanitize_filenames": true
+  },
+  "advanced": {
+    "concurrent_downloads": 1,
+    "retry_attempts": 3,
+    "temp_directory": "/tmp/yt-downloader"
+  }
+}

@@ -1,0 +1,47 @@
+#!/bin/bash
+#
+# YouTube Audio Workflow - Complete Solution
+# 
+# Usage:
+#   ./yt-workflow download <url> <start> <end> [name]
+#   ./yt-workflow combine <file1> <file2> [file3...] <output>
+#   ./yt-workflow split <file> <duration> <prefix>
+#   ./yt-workflow fade <file> <output> [fade_in] [fade_out]
+#   ./yt-workflow info <file>
+#
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+case "$1" in
+    download)
+        shift
+        python3 "$SCRIPT_DIR/yt-segment.py" "$@"
+        ;;
+    combine|split|fade|trim|volume|info)
+        python3 "$SCRIPT_DIR/audio-tools.py" "$@"
+        ;;
+    help|--help|-h)
+        echo "YouTube Audio Workflow - Complete Solution"
+        echo ""
+        echo "Download Commands:"
+        echo "  ./yt-workflow download <url> <start> <end> [name]"
+        echo ""
+        echo "Audio Edit Commands:"
+        echo "  ./yt-workflow combine <file1> <file2> [...] <output>"
+        echo "  ./yt-workflow split <file> <duration> <prefix>"
+        echo "  ./yt-workflow fade <file> <output> [fade_in] [fade_out]"
+        echo "  ./yt-workflow trim <file> <output> <start> <end>"
+        echo "  ./yt-workflow volume <file> <output> <factor>"
+        echo "  ./yt-workflow info <file>"
+        echo ""
+        echo "Examples:"
+        echo "  ./yt-workflow download 'https://youtu.be/VIDEO' '1:30' '2:45'"
+        echo "  ./yt-workflow combine clip1.mp3 clip2.mp3 final.mp3"
+        echo "  ./yt-workflow fade input.mp3 output.mp3 2 3"
+        ;;
+    *)
+        echo "Unknown command: $1"
+        echo "Use './yt-workflow help' for usage information"
+        exit 1
+        ;;
+esac 

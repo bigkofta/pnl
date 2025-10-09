@@ -1,0 +1,193 @@
+#!/bin/bash
+#
+# Interactive YouTube Segment Downloader
+# Simple guided workflow for downloading and processing YouTube segments
+#
+
+# Colors for better UX
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+echo -e "${CYAN}🎵 YouTube Segment Downloader - Interactive Mode${NC}"
+echo -e "${BLUE}=================================================${NC}"
+echo ""
+
+# Check for settings command
+if [[ "$1" == "settings" ]]; then
+    echo -e "${YELLOW}📝 Opening settings in Cursor...${NC}"
+    if command -v cursor &> /dev/null; then
+        cursor "$SCRIPT_DIR/settings.json"
+    else
+        open "$SCRIPT_DIR/settings.json"
+    fi
+    echo -e "${BLUE}💡 Edit the settings and save to change format (mp3/mp4), save location, etc.${NC}"
+    echo -e "${BLUE}💡 Run './yt-interactive' again after making changes${NC}"
+    exit 0
+fi
+
+# Get YouTube URL
+echo -e "${YELLOW}📺 Enter YouTube URL:${NC}"
+read -p "URL: " youtube_url
+
+if [[ ! "$youtube_url" =~ (youtube\.com|youtu\.be) ]]; then
+    echo -e "${RED}❌ Error: Please enter a valid YouTube URL${NC}"
+    exit 1
+fi
+
+echo ""
+echo -e "${YELLOW}⏰ Enter timestamps (you can add multiple segments):${NC}"
+echo -e "${BLUE}Format: MM:SS or HH:MM:SS or just seconds${NC}"
+echo -e "${BLUE}Examples: 1:30, 0:01:30, 90${NC}"
+echo ""
+
+segments=()
+segment_names=()
+counter=1
+
+while true; do
+    echo -e "${CYAN}Segment #$counter:${NC}"
+    
+    read -p "  Start time (or 'done' to finish): " start_time
+    if [[ "$start_time" == "done" || "$start_time" == "" ]]; then
+        break
+    fi
+    
+    read -p "  End time: " end_time
+    if [[ "$end_time" == "" ]]; then
+        echo -e "${RED}❌ End time required${NC}"
+        continue
+    fi
+    
+    read -p "  Custom name (optional): " custom_name
+    if [[ "$custom_name" == "" ]]; then
+        custom_name="segment_${counter}"
+    fi
+    
+    segments+=("$start_time:$end_time")
+    segment_names+=("$custom_name")
+    
+    echo -e "${GREEN}✅ Added: $start_time to $end_time as '$custom_name'${NC}"
+    echo ""
+    
+    ((counter++))
+done
+
+if [ ${#segments[@]} -eq 0 ]; then
+    echo -e "${RED}❌ No segments specified. Exiting.${NC}"
+    exit 1
+fi
+
+echo -e "${BLUE}📋 Summary:${NC}"
+for i in "${!segments[@]}"; do
+    IFS=':' read -r start end <<< "${segments[$i]}"
+    echo "  $((i+1)). ${segment_names[$i]}: $start → $end"
+done
+echo ""
+
+# Ask about processing options
+echo -e "${YELLOW}🔧 Processing Options:${NC}"
+echo "1. Keep segments separate"
+echo "2. Combine all segments into one file"
+echo "3. Download separate + create combined version"
+echo ""
+read -p "Choose option (1-3): " process_option
+
+case $process_option in
+    1|2|3) ;;
+    *) echo -e "${RED}❌ Invalid option. Using option 1 (separate files).${NC}"; process_option=1 ;;
+esac
+
+# Ask about audio effects
+echo ""
+echo -e "${YELLOW}🎛️ Audio Effects (optional):${NC}"
+echo "1. No effects"
+echo "2. Add fade in/out (2 seconds each)"
+echo "3. Custom fade times"
+echo ""
+read -p "Choose option (1-3): " effects_option
+
+fade_in=0
+fade_out=0
+case $effects_option in
+    2) fade_in=2; fade_out=2 ;;
+    3) 
+        read -p "Fade in duration (seconds): " fade_in
+        read -p "Fade out duration (seconds): " fade_out
+        ;;
+    *) effects_option=1 ;;
+esac
+
+echo ""
+echo -e "${GREEN}🚀 Starting downloads...${NC}"
+echo ""
+
+# Download all segments
+downloaded_files=()
+for i in "${!segments[@]}"; do
+    IFS=':' read -r start end <<< "${segments[$i]}"
+    filename="${segment_names[$i]}"
+    
+    echo -e "${CYAN}Downloading segment $((i+1))/${#segments[@]}: $start to $end${NC}"
+    
+    if python3 "$SCRIPT_DIR/yt-segment.py" "$youtube_url" "$start" "$end" "$filename"; then
+        downloaded_files+=("${filename}.mp3")
+        echo -e "${GREEN}✅ Downloaded: ${filename}.mp3${NC}"
+        
+        # Apply effects if requested
+        if [ "$effects_option" != "1" ] && [ "$fade_in" != "0" ] || [ "$fade_out" != "0" ]; then
+            echo -e "${BLUE}🎛️ Applying fade effects...${NC}"
+            if python3 "$SCRIPT_DIR/audio-tools.py" fade "${filename}.mp3" "${filename}_faded.mp3" "$fade_in" "$fade_out"; then
+                mv "${filename}_faded.mp3" "${filename}.mp3"
+                echo -e "${GREEN}✅ Effects applied${NC}"
+            fi
+        fi
+    else
+        echo -e "${RED}❌ Failed to download segment $((i+1))${NC}"
+    fi
+    echo ""
+done
+
+# Handle combination if requested
+if [ "$process_option" == "2" ] || [ "$process_option" == "3" ]; then
+    if [ ${#downloaded_files[@]} -gt 1 ]; then
+        echo -e "${CYAN}🔗 Combining segments...${NC}"
+        
+        # Ask for combined filename
+        read -p "Name for combined file (without .mp3): " combined_name
+        if [[ "$combined_name" == "" ]]; then
+            combined_name="combined_segments"
+        fi
+        
+        if python3 "$SCRIPT_DIR/audio-tools.py" combine "${downloaded_files[@]}" "${combined_name}.mp3"; then
+            echo -e "${GREEN}✅ Combined file created: ${combined_name}.mp3${NC}"
+            
+            # If option 2 (combine only), remove individual files
+            if [ "$process_option" == "2" ]; then
+                echo -e "${BLUE}🧹 Removing individual files (keeping combined only)...${NC}"
+                for file in "${downloaded_files[@]}"; do
+                    rm -f "$file"
+                    echo -e "${BLUE}  Removed: $file${NC}"
+                done
+            fi
+        else
+            echo -e "${RED}❌ Failed to combine files${NC}"
+        fi
+    else
+        echo -e "${YELLOW}⚠️ Only one segment downloaded, nothing to combine${NC}"
+    fi
+fi
+
+echo ""
+echo -e "${GREEN}🎉 All done! Here are your files:${NC}"
+ls -la *.mp3 2>/dev/null | while read line; do
+    echo -e "${BLUE}📄 $line${NC}"
+done
+
+echo ""
+echo -e "${CYAN}💡 Tip: Run './yt-interactive' again anytime for more downloads!${NC}" 
