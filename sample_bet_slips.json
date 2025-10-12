@@ -1,0 +1,43 @@
+[
+  {
+    "date": "2025-10-15",
+    "match": "Man City vs Arsenal",
+    "bet": "Under 2.5 Goals",
+    "odds": 2.10,
+    "stake": 100,
+    "result": "won",
+    "pnl": 110,
+    "notes": "High BSI match, defensive tactics from both sides"
+  },
+  {
+    "date": "2025-10-15",
+    "match": "Lakers vs Warriors",
+    "bet": "LeBron Over 27.5 Points",
+    "odds": 1.90,
+    "stake": 150,
+    "result": "lost",
+    "pnl": -150,
+    "notes": "Rotational rest impacted minutes"
+  },
+  {
+    "date": "2025-10-16",
+    "match": "PSG vs Marseille",
+    "bet": "PSG -1.5",
+    "odds": 1.85,
+    "stake": 200,
+    "result": "won",
+    "pnl": 170,
+    "notes": "Dominant performance, clean sheet"
+  },
+  {
+    "date": "2025-10-16",
+    "match": "Sinner vs Alcaraz",
+    "bet": "Sinner ML",
+    "odds": 2.25,
+    "stake": 80,
+    "result": "won",
+    "pnl": 100,
+    "notes": "BSI 6.9, moderate confidence paid off"
+  }
+]
+

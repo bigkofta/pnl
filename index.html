@@ -164,6 +164,9 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-6">
+                    <button onclick="window.location.href='launch.html'" class="btn-primary flex items-center">
+                        <i class="fas fa-home mr-2"></i>Launcher
+                    </button>
                     <div class="text-right">
                         <div class="text-sm text-gray-400">Session</div>
                         <div class="font-mono text-green-400" id="session-time"></div>
@@ -183,49 +186,145 @@
 
     <div class="max-w-7xl mx-auto px-6 py-8">
         
-        <!-- Read Input & Contra Analysis Row -->
+        <!-- Capital & Priorities Row -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             
-            <!-- Read Input -->
+            <!-- Capital Tracker -->
             <div class="dashboard-card">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-xl font-bold flex items-center">
-                        <i class="fas fa-edit text-blue-400 mr-3"></i>
-                        Current Read
+                        <i class="fas fa-dollar-sign text-green-400 mr-3"></i>
+                        Daily Capital
                     </h2>
-                    <button class="btn-primary" onclick="processRead()">
-                        <i class="fas fa-arrow-right mr-2"></i>Process
+                    <div class="flex items-center space-x-3">
+                        <button class="text-sm text-gray-400 hover:text-white" onclick="prevDay()" title="Previous Day">
+                            <i class="fas fa-chevron-left"></i>
                     </button>
+                        <span class="text-sm font-semibold cursor-pointer hover:text-blue-400" 
+                              id="current-day-display" 
+                              onclick="jumpToToday()" 
+                              title="Click to jump to today">Today</span>
+                        <button class="text-sm text-gray-400 hover:text-white" onclick="nextDay()" title="Next Day">
+                            <i class="fas fa-chevron-right"></i>
+                    </button>
+                        <button class="btn-primary text-sm" onclick="editCurrentDay()">
+                            <i class="fas fa-edit mr-2"></i>Edit Day
+                    </button>
+                    </div>
                 </div>
-                <textarea id="read-input" class="input-field h-32 mb-4" placeholder="Paste your GPT read here..."></textarea>
-                <div class="flex space-x-3">
-                    <button class="btn-primary flex-1" onclick="runContra()">
-                        <i class="fas fa-search mr-2"></i>Run Contra
-                    </button>
-                    <button class="btn-primary flex-1" onclick="checkBSI()">
-                        <i class="fas fa-brain mr-2"></i>Check BSI
-                    </button>
+                <div class="text-center mb-6">
+                    <div class="metric-value" id="capital-value">$10,000</div>
+                    <div class="text-sm text-gray-400">Current Bankroll</div>
+                    <div class="flex justify-center items-center mt-2">
+                        <span id="capital-change" class="text-green-400 text-lg font-semibold">
+                            <i class="fas fa-arrow-up mr-1"></i>+$250 (2.5%)
+                        </span>
+                    </div>
+                </div>
+                <div class="bg-secondary-bg rounded-lg p-4">
+                    <canvas id="capitalChart" height="150"></canvas>
                 </div>
             </div>
 
-            <!-- Contra Analysis -->
+            <!-- Top Priorities -->
             <div class="dashboard-card">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-xl font-bold flex items-center">
-                        <i class="fas fa-balance-scale text-red-400 mr-3"></i>
-                        Contra Analysis
+                        <i class="fas fa-star text-yellow-400 mr-3"></i>
+                        Top Priorities
                     </h2>
-                    <span class="status-indicator status-active"></span>
+                    <div class="flex items-center space-x-3">
+                        <button class="text-sm text-gray-400 hover:text-white" onclick="prevPriorityDay()" title="Previous Day">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span class="text-sm font-semibold cursor-pointer hover:text-blue-400" 
+                              id="priority-day-display" 
+                              onclick="jumpPriorityToToday()" 
+                              title="Click to jump to today">Today</span>
+                        <button class="text-sm text-gray-400 hover:text-white" onclick="nextPriorityDay()" title="Next Day">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <button class="btn-primary text-sm" onclick="openEditPrioritiesModal()">
+                            <i class="fas fa-edit mr-2"></i>Manage
+                        </button>
                 </div>
-                <div id="contra-results" class="space-y-3">
-                    <div class="bg-red-900/30 border border-red-500/50 rounded-lg p-3">
-                        <div class="font-semibold text-red-300">Power Assessment Contradiction</div>
-                        <div class="text-sm text-gray-300 mt-1">You said "only power" but also "can match the power" - which dominates?</div>
                     </div>
-                    <div class="bg-yellow-900/30 border border-yellow-500/50 rounded-lg p-3">
-                        <div class="font-semibold text-yellow-300">Mental State vs Performance Link</div>
-                        <div class="text-sm text-gray-300 mt-1">Mental advantage noted but not weighted against proven performance.</div>
+                <div class="space-y-4" id="priorities-list">
+                    <!-- Priorities will be rendered here -->
                     </div>
+                <div class="mt-4 text-sm text-gray-400 text-center" id="priority-status">
+                    <!-- Priority completion status will show here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- PNL Monthly Calendar -->
+        <div class="dashboard-card mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold flex items-center">
+                    <i class="fas fa-calendar-alt text-blue-400 mr-3"></i>
+                    Monthly PNL Calendar
+                </h2>
+                <div class="flex items-center space-x-4">
+                    <button class="btn-primary text-sm" onclick="showImportModal()">
+                        <i class="fas fa-upload mr-2"></i>Import Bet Slips
+                    </button>
+                    <button class="btn-primary text-sm" onclick="exportData()">
+                        <i class="fas fa-download mr-2"></i>Export
+                    </button>
+                    <button class="text-sm text-gray-400 hover:text-white" onclick="prevMonth()">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span class="text-sm font-semibold" id="current-month">October 2025</span>
+                    <button class="text-sm text-gray-400 hover:text-white" onclick="nextMonth()">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+                <div class="text-center p-4 bg-secondary-bg rounded-lg">
+                    <div class="text-sm text-gray-400">Month Total</div>
+                    <div class="text-3xl font-bold text-green-400">+$1,250</div>
+                    <div class="text-xs text-gray-500 mt-1">12.5% Growth</div>
+                </div>
+                <div class="text-center p-4 bg-secondary-bg rounded-lg">
+                    <div class="text-sm text-gray-400">Wins / Losses</div>
+                    <div class="text-2xl font-bold">
+                        <span class="text-green-400">18</span>
+                        <span class="text-gray-500"> / </span>
+                        <span class="text-red-400">7</span>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">72% Win Rate</div>
+                </div>
+                <div class="text-center p-4 bg-secondary-bg rounded-lg">
+                    <div class="text-sm text-gray-400">Avg Win</div>
+                    <div class="text-2xl font-bold text-purple-400">$125</div>
+                    <div class="text-xs text-gray-500 mt-1">Per winning day</div>
+                </div>
+                <div class="text-center p-4 bg-secondary-bg rounded-lg">
+                    <div class="text-sm text-gray-400">Best Day</div>
+                    <div class="text-2xl font-bold text-blue-400">$250</div>
+                    <div class="text-xs text-gray-500 mt-1">Oct 30</div>
+                </div>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="bg-secondary-bg rounded-lg p-4">
+                <!-- Weekday Headers -->
+                <div class="grid grid-cols-7 gap-2 mb-2">
+                    <div class="text-center text-xs font-semibold text-gray-400 py-2">SUN</div>
+                    <div class="text-center text-xs font-semibold text-gray-400 py-2">MON</div>
+                    <div class="text-center text-xs font-semibold text-gray-400 py-2">TUE</div>
+                    <div class="text-center text-xs font-semibold text-gray-400 py-2">WED</div>
+                    <div class="text-center text-xs font-semibold text-gray-400 py-2">THU</div>
+                    <div class="text-center text-xs font-semibold text-gray-400 py-2">FRI</div>
+                    <div class="text-center text-xs font-semibold text-gray-400 py-2">SAT</div>
+                </div>
+                
+                <!-- Calendar Days -->
+                <div class="grid grid-cols-7 gap-2" id="calendar-grid">
+                    <!-- Will be populated by JavaScript -->
                 </div>
             </div>
         </div>
@@ -577,7 +676,11 @@
             updateSessionTime();
             setInterval(updateSessionTime, 1000);
             initSentimentChart();
+            initCapitalChart();
+            initPNLChart();
             updateThermometer(73);
+            renderPriorities();
+            updateDayDisplay();
         }
 
         function updateSessionTime() {
@@ -612,23 +715,1077 @@
             });
         }
 
+        function initCapitalChart() {
+            const ctx = document.getElementById('capitalChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Capital',
+                        data: [9500, 9750, 9600, 9850, 10000, 9900, 10250],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#10b981'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: '#a1a1aa' }
+                        },
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: '#a1a1aa' }
+                        }
+                    }
+                }
+            });
+        }
+
         // Dashboard functions
-        function processRead() {
-            const readInput = document.getElementById('read-input').value;
-            if (!readInput.trim()) {
-                alert('Please enter a read first');
+        function updateDayDisplay() {
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            currentViewDate.setHours(0, 0, 0, 0);
+            
+            const displayEl = document.getElementById('current-day-display');
+            
+            if (currentViewDate.getTime() === today.getTime()) {
+                displayEl.textContent = 'Today';
+            } else {
+                const dayOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][currentViewDate.getDay()];
+                displayEl.textContent = `${dayOfWeek}, ${monthNames[currentViewDate.getMonth()]} ${currentViewDate.getDate()}`;
+            }
+            
+            // Load data for the current view date
+            const dayData = PNLManager.getDay(currentViewDate.getFullYear(), currentViewDate.getMonth(), currentViewDate.getDate());
+            
+            // Update capital display
+            if (dayData.pnl && dayData.pnl !== 0) {
+                const changeEl = document.getElementById('capital-change');
+                if (dayData.pnl > 0) {
+                    changeEl.className = 'text-green-400 text-lg font-semibold';
+                    changeEl.innerHTML = `<i class="fas fa-arrow-up mr-1"></i>+$${Math.abs(dayData.pnl)} PNL`;
+                } else {
+                    changeEl.className = 'text-red-400 text-lg font-semibold';
+                    changeEl.innerHTML = `<i class="fas fa-arrow-down mr-1"></i>-$${Math.abs(dayData.pnl)} PNL`;
+                }
+            } else {
+                const changeEl = document.getElementById('capital-change');
+                changeEl.className = 'text-gray-400 text-lg font-semibold';
+                changeEl.innerHTML = 'No trades recorded';
+            }
+        }
+
+        function prevDay() {
+            currentViewDate.setDate(currentViewDate.getDate() - 1);
+            updateDayDisplay();
+        }
+
+        function nextDay() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            currentViewDate.setDate(currentViewDate.getDate() + 1);
+            
+            // Don't go beyond today
+            if (currentViewDate > today) {
+                currentViewDate = new Date(today);
+            }
+            
+            updateDayDisplay();
+        }
+
+        function jumpToToday() {
+            currentViewDate = new Date();
+            updateDayDisplay();
+        }
+
+        function editCurrentDay() {
+            // Set the calendar to the current view date's month/year
+            currentYear = currentViewDate.getFullYear();
+            currentMonth = currentViewDate.getMonth();
+            // Open the modal for the currently viewed day
+            openDayModal(currentViewDate.getDate());
+        }
+
+        function updateCapital() {
+            const newValue = prompt('Enter new capital amount:', '10000');
+            if (newValue && !isNaN(newValue)) {
+                document.getElementById('capital-value').textContent = '$' + parseFloat(newValue).toLocaleString();
+                alert('Capital updated!');
+            }
+        }
+
+        function renderPriorities() {
+            const container = document.getElementById('priorities-list');
+            
+            if (!container) {
+                console.error('Priorities container not found!');
                 return;
             }
-            // Simulate processing
-            console.log('Processing read:', readInput);
+            
+            // Update day display
+            updatePriorityDayDisplay();
+            
+            console.log('Rendering priorities...');
+            const priorities = PNLManager.loadPriorities().filter(p => p.active);
+            console.log('Active priorities:', priorities);
+            
+            if (priorities.length === 0) {
+                console.log('No active priorities, showing message');
+                container.innerHTML = `
+                    <div class="text-center py-4 text-gray-400 text-sm">
+                        No active priorities. Click "Manage" to add some.
+                    </div>
+                `;
+                return;
+            }
+            
+            // Get day data to check completed priorities
+            const dayData = PNLManager.getDay(
+                currentPriorityDate.getFullYear(), 
+                currentPriorityDate.getMonth(), 
+                currentPriorityDate.getDate()
+            );
+            const completedPriorities = dayData.prioritiesWorkedOn || [];
+            
+            const colorSchemes = [
+                { bg: 'rgba(59, 130, 246, 0.2)', border: 'rgba(59, 130, 246, 0.5)', text: '#93c5fd', badge: 'rgba(59, 130, 246, 0.3)' },
+                { bg: 'rgba(147, 51, 234, 0.2)', border: 'rgba(147, 51, 234, 0.5)', text: '#d8b4fe', badge: 'rgba(147, 51, 234, 0.3)' },
+                { bg: 'rgba(16, 185, 129, 0.2)', border: 'rgba(16, 185, 129, 0.5)', text: '#6ee7b7', badge: 'rgba(16, 185, 129, 0.3)' },
+                { bg: 'rgba(251, 146, 60, 0.2)', border: 'rgba(251, 146, 60, 0.5)', text: '#fdba74', badge: 'rgba(251, 146, 60, 0.3)' },
+                { bg: 'rgba(236, 72, 153, 0.2)', border: 'rgba(236, 72, 153, 0.5)', text: '#f9a8d4', badge: 'rgba(236, 72, 153, 0.3)' },
+                { bg: 'rgba(6, 182, 212, 0.2)', border: 'rgba(6, 182, 212, 0.5)', text: '#67e8f9', badge: 'rgba(6, 182, 212, 0.3)' }
+            ];
+            const emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'];
+            
+            container.innerHTML = priorities.slice(0, 6).map((priority, index) => {
+                const scheme = colorSchemes[index % colorSchemes.length];
+                const isCompleted = completedPriorities.includes(priority.id);
+                const checkmark = isCompleted ? '<i class="fas fa-check-circle text-green-400 ml-2"></i>' : '';
+                const opacity = isCompleted ? 'opacity-60' : '';
+                
+                return `
+                    <div style="background: ${scheme.bg}; border: 1px solid ${scheme.border};" 
+                         class="rounded-lg p-4 cursor-pointer hover:opacity-80 transition-all ${opacity}"
+                         onclick="togglePriorityForDay(${priority.id})">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-3">${emojis[index]}</span>
+                                <span class="font-bold" style="color: ${scheme.text}">${priority.title}${checkmark}</span>
+                            </div>
+                            <span class="text-xs px-2 py-1 rounded" style="background: ${scheme.badge}">${priority.category}</span>
+                        </div>
+                        <div class="text-sm text-gray-300 ml-10">${priority.description}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Update status
+            const statusEl = document.getElementById('priority-status');
+            if (statusEl) {
+                const completed = completedPriorities.length;
+                const total = priorities.length;
+                if (completed > 0) {
+                    statusEl.innerHTML = `✓ ${completed} of ${total} priorities completed`;
+                    statusEl.className = 'mt-4 text-sm text-green-400 text-center';
+                } else {
+                    statusEl.innerHTML = `Click priorities to mark as worked on today`;
+                    statusEl.className = 'mt-4 text-sm text-gray-400 text-center';
+                }
+            }
+            
+            console.log('Priorities rendered successfully!', priorities.length, 'items');
         }
 
-        function runContra() {
-            alert('Running Contra analysis...');
+        function updatePriorityDayDisplay() {
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            currentPriorityDate.setHours(0, 0, 0, 0);
+            
+            const displayEl = document.getElementById('priority-day-display');
+            if (!displayEl) return;
+            
+            if (currentPriorityDate.getTime() === today.getTime()) {
+                displayEl.textContent = 'Today';
+            } else {
+                const dayOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][currentPriorityDate.getDay()];
+                displayEl.textContent = `${dayOfWeek}, ${monthNames[currentPriorityDate.getMonth()]} ${currentPriorityDate.getDate()}`;
+            }
         }
 
-        function checkBSI() {
-            alert('Checking BSI score...');
+        function prevPriorityDay() {
+            currentPriorityDate.setDate(currentPriorityDate.getDate() - 1);
+            renderPriorities();
+        }
+
+        function nextPriorityDay() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            currentPriorityDate.setDate(currentPriorityDate.getDate() + 1);
+            
+            if (currentPriorityDate > today) {
+                currentPriorityDate = new Date(today);
+            }
+            
+            renderPriorities();
+        }
+
+        function jumpPriorityToToday() {
+            currentPriorityDate = new Date();
+            renderPriorities();
+        }
+
+        function togglePriorityForDay(priorityId) {
+            const dayData = PNLManager.getDay(
+                currentPriorityDate.getFullYear(), 
+                currentPriorityDate.getMonth(), 
+                currentPriorityDate.getDate()
+            );
+            
+            let prioritiesWorkedOn = dayData.prioritiesWorkedOn || [];
+            
+            if (prioritiesWorkedOn.includes(priorityId)) {
+                // Remove it
+                prioritiesWorkedOn = prioritiesWorkedOn.filter(id => id !== priorityId);
+            } else {
+                // Add it
+                prioritiesWorkedOn.push(priorityId);
+            }
+            
+            dayData.prioritiesWorkedOn = prioritiesWorkedOn;
+            PNLManager.setDay(
+                currentPriorityDate.getFullYear(), 
+                currentPriorityDate.getMonth(), 
+                currentPriorityDate.getDate(), 
+                dayData
+            );
+            
+            renderPriorities();
+        }
+
+        function openEditPrioritiesModal() {
+            console.log('Opening priorities edit modal...');
+            editingPriorities = PNLManager.loadPriorities();
+            console.log('Loaded priorities for editing:', editingPriorities);
+            
+            const modal = document.createElement('div');
+            modal.id = 'priorities-modal';
+            modal.className = 'fixed inset-0 bg-black/70 flex items-center justify-center z-50 overflow-y-auto py-8';
+            modal.innerHTML = `
+                <div class="bg-gray-800 rounded-xl p-6 max-w-3xl w-full mx-4 border border-gray-700">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-white">
+                            <i class="fas fa-star text-yellow-400 mr-2"></i>Manage Priorities
+                        </h3>
+                        <button onclick="closePrioritiesModal()" class="text-gray-400 hover:text-white">
+                            <i class="fas fa-times text-2xl"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <button onclick="addNewPriority()" class="btn-primary w-full">
+                            <i class="fas fa-plus mr-2"></i>Add New Priority
+                        </button>
+                    </div>
+                    
+                    <div id="priorities-edit-list" class="space-y-3 mb-6">
+                        <!-- Priorities will be rendered here -->
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <button onclick="savePriorities()" class="btn-primary flex-1">
+                            <i class="fas fa-save mr-2"></i>Save Changes
+                        </button>
+                        <button onclick="closePrioritiesModal()" class="btn-primary bg-gray-600 hover:bg-gray-700">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            renderPrioritiesEditList();
+        }
+
+        let editingPriorities = [];
+
+        function renderPrioritiesEditList(forceReload = false) {
+            if (forceReload || editingPriorities.length === 0) {
+                editingPriorities = PNLManager.loadPriorities();
+            }
+            const container = document.getElementById('priorities-edit-list');
+            
+            if (!container) {
+                console.error('Priorities edit container not found');
+                return;
+            }
+            
+            console.log('Rendering priorities edit list:', editingPriorities.length);
+            
+            container.innerHTML = editingPriorities.map((priority, index) => `
+                <div class="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
+                    <div class="grid grid-cols-12 gap-3 items-center">
+                        <div class="col-span-1 flex items-center justify-center">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="checkbox" ${priority.active ? 'checked' : ''} 
+                                       onchange="updatePriority(${index}, 'active', this.checked)"
+                                       class="w-5 h-5">
+                            </label>
+                        </div>
+                        <input type="text" value="${priority.title || ''}" 
+                               placeholder="Priority Title (e.g., Man City vs Arsenal)"
+                               oninput="updatePriority(${index}, 'title', this.value)"
+                               class="input-field col-span-4 text-sm py-2">
+                        <input type="text" value="${priority.category || ''}" 
+                               placeholder="Category (e.g., EPL, NBA)"
+                               oninput="updatePriority(${index}, 'category', this.value)"
+                               class="input-field col-span-2 text-sm py-2">
+                        <input type="text" value="${priority.description || ''}" 
+                               placeholder="Description/Details"
+                               oninput="updatePriority(${index}, 'description', this.value)"
+                               class="input-field col-span-4 text-sm py-2">
+                        <button onclick="removePriority(${index})" 
+                                class="btn-primary bg-red-600 hover:bg-red-700 col-span-1 text-sm py-2">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addNewPriority() {
+            editingPriorities.push({
+                id: Date.now(),
+                title: '',
+                category: '',
+                description: '',
+                active: true
+            });
+            renderPrioritiesEditList();
+        }
+
+        function updatePriority(index, field, value) {
+            console.log(`Updating priority ${index}, field: ${field}, value:`, value);
+            if (editingPriorities[index]) {
+                editingPriorities[index][field] = value;
+                console.log('Updated priority:', editingPriorities[index]);
+            } else {
+                console.error(`Priority at index ${index} not found`);
+            }
+        }
+
+        function removePriority(index) {
+            if (confirm('Remove this priority?')) {
+                editingPriorities.splice(index, 1);
+                renderPrioritiesEditList();
+            }
+        }
+
+        function savePriorities() {
+            PNLManager.savePriorities(editingPriorities);
+            renderPriorities();
+            closePrioritiesModal();
+            alert('Priorities saved successfully!');
+        }
+
+        function closePrioritiesModal() {
+            const modal = document.getElementById('priorities-modal');
+            if (modal) modal.remove();
+        }
+
+        function togglePriorityComplete(priorityId) {
+            // This could mark priority as complete for the day
+            console.log('Toggle priority:', priorityId);
+        }
+
+        // PNL Data Management with localStorage
+        const PNLManager = {
+            storageKey: 'stevesystem_pnl_data',
+            prioritiesKey: 'stevesystem_priorities',
+            
+            // Load PNL data from localStorage
+            loadData() {
+                const saved = localStorage.getItem(this.storageKey);
+                return saved ? JSON.parse(saved) : {};
+            },
+            
+            // Save PNL data to localStorage
+            saveData(data) {
+                localStorage.setItem(this.storageKey, JSON.stringify(data));
+            },
+            
+            // Get data for specific date
+            getDay(year, month, day) {
+                const data = this.loadData();
+                const key = `${year}-${month + 1}-${day}`;
+                return data[key] || { pnl: 0, trades: 0, notes: '' };
+            },
+            
+            // Set data for specific date
+            setDay(year, month, day, dayData) {
+                const data = this.loadData();
+                const key = `${year}-${month + 1}-${day}`;
+                data[key] = dayData;
+                this.saveData(data);
+            },
+            
+            // Priorities management
+            loadPriorities() {
+                const saved = localStorage.getItem(this.prioritiesKey);
+                return saved ? JSON.parse(saved) : [
+                    { id: 1, title: "Man City vs Arsenal", category: "EPL", description: "High BSI match - Under 2.5 Goals @ 2.10", active: true },
+                    { id: 2, title: "LeBron James Props", category: "NBA", description: "Over 27.5 points - narrative alignment", active: true },
+                    { id: 3, title: "Review Yesterday's Plays", category: "Meta", description: "Update BSI scores + contra analysis", active: true }
+                ];
+            },
+            
+            savePriorities(priorities) {
+                localStorage.setItem(this.prioritiesKey, JSON.stringify(priorities));
+            }
+        };
+
+        let currentYear = new Date().getFullYear();
+        let currentMonth = new Date().getMonth();
+        let currentViewDate = new Date(); // For daily capital navigation
+        let currentPriorityDate = new Date(); // For priority day navigation
+
+        function initPNLChart() {
+            renderCalendar();
+        }
+        
+        function renderCalendar() {
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const firstDayOfWeek = firstDay.getDay();
+            
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('current-month').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+            
+            const calendarGrid = document.getElementById('calendar-grid');
+            calendarGrid.innerHTML = '';
+            
+            // Calculate monthly stats - only count days with actual trades
+            let monthTotal = 0;
+            let wins = 0;
+            let losses = 0;
+            let bestDay = 0;
+            let bestDayNum = 0;
+            let worstDay = 0;
+            let worstDayNum = 0;
+            let tradingDays = 0;
+            let winningDaysTotal = 0;
+            
+            // Add empty cells for days before the 1st
+            for (let i = 0; i < firstDayOfWeek; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'p-3 rounded-lg';
+                calendarGrid.appendChild(emptyDay);
+            }
+            
+            // Add calendar days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayData = PNLManager.getDay(currentYear, currentMonth, day);
+                const pnl = dayData.pnl || 0;
+                const trades = dayData.trades || 0;
+                
+                // Only count days where you actually traded
+                if (trades > 0 || pnl !== 0) {
+                    tradingDays++;
+                    monthTotal += pnl;
+                    
+                    if (pnl > 0) {
+                        wins++;
+                        winningDaysTotal += pnl;
+                    }
+                    if (pnl < 0) {
+                        losses++;
+                    }
+                    if (pnl > bestDay) {
+                        bestDay = pnl;
+                        bestDayNum = day;
+                    }
+                    if (pnl < worstDay) {
+                        worstDay = pnl;
+                        worstDayNum = day;
+                    }
+                }
+                
+                const dayCell = document.createElement('div');
+                
+                // Style based on PNL
+                let bgColor = 'bg-gray-800';
+                let textColor = 'text-gray-400';
+                
+                if (pnl > 0) {
+                    bgColor = 'bg-green-900/30 border border-green-500/50';
+                    textColor = 'text-green-400';
+                } else if (pnl < 0) {
+                    bgColor = 'bg-red-900/30 border border-red-500/50';
+                    textColor = 'text-red-400';
+                }
+                
+                dayCell.className = `p-3 rounded-lg ${bgColor} cursor-pointer hover:opacity-80 transition-all`;
+                dayCell.innerHTML = `
+                    <div class="text-xs text-gray-400 mb-1">${day}</div>
+                    <div class="text-sm font-bold ${textColor}">${pnl >= 0 ? '+' : ''}$${pnl}</div>
+                `;
+                dayCell.onclick = () => openDayModal(day);
+                
+                calendarGrid.appendChild(dayCell);
+            }
+            
+            // Update monthly stats display with proper calculations
+            const winRate = tradingDays > 0 ? Math.round((wins / tradingDays) * 100) : 0;
+            const avgWin = wins > 0 ? Math.round(winningDaysTotal / wins) : 0;
+            
+            // Month Total
+            const totalEl = document.querySelector('.dashboard-card .grid .text-center:nth-child(1) .text-3xl');
+            if (totalEl) {
+                totalEl.textContent = (monthTotal >= 0 ? '+' : '') + '$' + monthTotal.toFixed(2);
+                totalEl.className = monthTotal >= 0 ? 'text-3xl font-bold text-green-400' : 'text-3xl font-bold text-red-400';
+            }
+            
+            // Wins / Losses
+            const wlEl = document.querySelector('.dashboard-card .grid .text-center:nth-child(2) .text-2xl');
+            if (wlEl) {
+                if (tradingDays === 0) {
+                    wlEl.innerHTML = `<span class="text-gray-400">No trades yet</span>`;
+                } else {
+                    wlEl.innerHTML = `<span class="text-green-400">${wins}</span><span class="text-gray-500"> / </span><span class="text-red-400">${losses}</span>`;
+                }
+            }
+            
+            const wrEl = document.querySelector('.dashboard-card .grid .text-center:nth-child(2) .text-xs');
+            if (wrEl) {
+                wrEl.textContent = tradingDays > 0 ? `${winRate}% Win Rate` : 'Start tracking!';
+            }
+            
+            // Avg Win
+            const avgEl = document.querySelector('.dashboard-card .grid .text-center:nth-child(3) .text-2xl');
+            if (avgEl) {
+                avgEl.textContent = wins > 0 ? '$' + avgWin : '$0';
+            }
+            
+            // Best Day
+            const bestEl = document.querySelector('.dashboard-card .grid .text-center:nth-child(4) .text-2xl');
+            const bestDateEl = document.querySelector('.dashboard-card .grid .text-center:nth-child(4) .text-xs');
+            if (bestEl && bestDateEl) {
+                if (bestDayNum > 0) {
+                    bestEl.textContent = '$' + bestDay.toFixed(0);
+                    bestDateEl.textContent = monthNames[currentMonth].slice(0, 3) + ' ' + bestDayNum;
+                } else {
+                    bestEl.textContent = '$0';
+                    bestDateEl.textContent = 'No data';
+                }
+            }
+        }
+
+        function prevMonth() {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        }
+
+        let selectedDay = null;
+
+        function openDayModal(day) {
+            selectedDay = day;
+            const dayData = PNLManager.getDay(currentYear, currentMonth, day);
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+            const weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const date = new Date(currentYear, currentMonth, day);
+            
+            // Show comprehensive modal with form
+            const modal = document.createElement('div');
+            modal.id = 'pnl-modal';
+            modal.className = 'fixed inset-0 bg-black/70 flex items-center justify-center z-50 overflow-y-auto py-8';
+            modal.innerHTML = `
+                <div class="bg-gray-800 rounded-xl p-6 max-w-4xl w-full mx-4 border border-gray-700">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="text-2xl font-bold text-white">
+                                ${weekDays[date.getDay()]}, ${monthNames[currentMonth]} ${day}, ${currentYear}
+                            </h3>
+                            <p class="text-sm text-gray-400">Complete Trading Journal</p>
+                        </div>
+                        <button onclick="closeDayModal()" class="text-gray-400 hover:text-white">
+                            <i class="fas fa-times text-2xl"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <!-- Left Column -->
+                        <div class="space-y-4">
+                            <!-- Daily PNL & Stats -->
+                            <div class="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                                <h4 class="text-lg font-bold text-blue-400 mb-3">📊 Daily Summary</h4>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Daily PNL ($)</label>
+                                        <input type="number" id="modal-pnl" value="${dayData.pnl || 0}" 
+                                               class="input-field w-full" step="0.01">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Number of Trades</label>
+                                        <input type="number" id="modal-trades" value="${dayData.trades || 0}" 
+                                               class="input-field w-full">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Win Rate (%)</label>
+                                        <input type="number" id="modal-winrate" value="${dayData.winRate || 0}" 
+                                               class="input-field w-full" min="0" max="100">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Largest Win ($)</label>
+                                        <input type="number" id="modal-largestwin" value="${dayData.largestWin || 0}" 
+                                               class="input-field w-full" step="0.01">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Morning Intentions -->
+                            <div class="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                                <h4 class="text-lg font-bold text-yellow-400 mb-2">
+                                    <i class="fas fa-sun mr-2"></i>Morning Intentions
+                                </h4>
+                                <p class="text-xs text-gray-400 mb-2">What would the billion-dollar version of me do today?</p>
+                                <textarea id="modal-morning" class="input-field w-full h-20 text-sm"
+                                          placeholder="My focus areas, goals, mindset for today...">${dayData.morningIntentions || ''}</textarea>
+                            </div>
+
+                            <!-- Key Focus Areas -->
+                            <div class="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                                <h4 class="text-lg font-bold text-purple-400 mb-2">
+                                    <i class="fas fa-bullseye mr-2"></i>Key Focus Areas
+                                </h4>
+                                <textarea id="modal-focus" class="input-field w-full h-16 text-sm"
+                                          placeholder="What are the 2-3 most important things today?">${dayData.focusAreas || ''}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="space-y-4">
+                            <!-- Evening Reflection -->
+                            <div class="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                                <h4 class="text-lg font-bold text-orange-400 mb-2">
+                                    <i class="fas fa-moon mr-2"></i>Evening Reflection
+                                </h4>
+                                <p class="text-xs text-gray-400 mb-2">Did I trade long-game EV or ego/boredom?</p>
+                                <textarea id="modal-evening" class="input-field w-full h-20 text-sm"
+                                          placeholder="Honest reflection on today's decisions...">${dayData.eveningReflection || ''}</textarea>
+                            </div>
+
+                            <!-- What I Learned -->
+                            <div class="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                                <h4 class="text-lg font-bold text-green-400 mb-2">
+                                    <i class="fas fa-lightbulb mr-2"></i>What I Learned Today
+                                </h4>
+                                <textarea id="modal-learned" class="input-field w-full h-20 text-sm"
+                                          placeholder="Key insights and lessons...">${dayData.learned || ''}</textarea>
+                            </div>
+
+                            <!-- Patterns Caught -->
+                            <div class="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                                <h4 class="text-lg font-bold text-cyan-400 mb-2">
+                                    <i class="fas fa-chart-line mr-2"></i>Patterns Caught
+                                </h4>
+                                <textarea id="modal-patterns" class="input-field w-full h-16 text-sm"
+                                          placeholder="Market patterns, edge opportunities spotted...">${dayData.patterns || ''}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Individual Trades Table -->
+                    <div class="bg-gray-900/50 rounded-lg p-4 border border-gray-700 mb-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-lg font-bold text-blue-400">
+                                <i class="fas fa-list mr-2"></i>Individual Trades
+                            </h4>
+                            <button onclick="addTradeRow()" class="btn-primary text-sm">
+                                <i class="fas fa-plus mr-1"></i>Add Trade
+                            </button>
+                        </div>
+                        <div id="trades-container" class="space-y-2">
+                            <!-- Trades will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Priorities Worked On Today -->
+                    <div class="bg-yellow-900/20 rounded-lg p-4 border border-yellow-500/50 mb-6">
+                        <h4 class="text-lg font-bold text-yellow-400 mb-2">
+                            <i class="fas fa-star mr-2"></i>Priorities Worked On Today
+                        </h4>
+                        <div id="priority-checkboxes" class="grid grid-cols-2 gap-2">
+                            <!-- Priority checkboxes will be rendered here -->
+                        </div>
+                    </div>
+
+                    <!-- What Could've Been Better -->
+                    <div class="bg-red-900/20 rounded-lg p-4 border border-red-500/50 mb-6">
+                        <h4 class="text-lg font-bold text-red-400 mb-2">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>What Could've Been Better
+                        </h4>
+                        <textarea id="modal-improvements" class="input-field w-full h-16 text-sm"
+                                  placeholder="Mistakes, areas for improvement, what not to do again...">${dayData.improvements || ''}</textarea>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-3">
+                        <button onclick="saveDayData()" class="btn-primary flex-1">
+                            <i class="fas fa-save mr-2"></i>Save Daily Data
+                        </button>
+                        <button onclick="clearDayData()" class="btn-primary bg-red-600 hover:bg-red-700">
+                            <i class="fas fa-trash mr-2"></i>Clear
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // Populate trades
+            renderTrades(dayData.individualTrades || []);
+            
+            // Populate priority checkboxes
+            renderPriorityCheckboxes(dayData.prioritiesWorkedOn || []);
+        }
+
+        function renderPriorityCheckboxes(selectedPriorities = []) {
+            const priorities = PNLManager.loadPriorities().filter(p => p.active);
+            const container = document.getElementById('priority-checkboxes');
+            
+            if (!container) {
+                console.error('Priority checkboxes container not found');
+                return;
+            }
+            
+            if (priorities.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-2 text-center py-2 text-gray-400 text-sm">
+                        No priorities set. Manage priorities from the dashboard.
+                    </div>
+                `;
+                return;
+            }
+            
+            console.log('Rendering priority checkboxes:', priorities.length, 'Selected:', selectedPriorities);
+            
+            container.innerHTML = priorities.map(priority => {
+                const isChecked = selectedPriorities.includes(priority.id);
+                console.log(`Priority ${priority.id} (${priority.title}): checked=${isChecked}`);
+                return `
+                    <label class="flex items-center space-x-2 p-3 bg-gray-700/50 rounded cursor-pointer hover:bg-gray-700 transition-colors">
+                        <input type="checkbox" 
+                               value="${priority.id}" 
+                               ${isChecked ? 'checked' : ''}
+                               class="priority-checkbox w-4 h-4">
+                        <span class="text-sm text-white">${priority.title} <span class="text-gray-400">(${priority.category})</span></span>
+                    </label>
+                `;
+            }).join('');
+        }
+
+        function closeDayModal() {
+            const modal = document.getElementById('pnl-modal');
+            if (modal) modal.remove();
+        }
+
+        let currentTrades = [];
+
+        function renderTrades(trades) {
+            currentTrades = trades || [];
+            const container = document.getElementById('trades-container');
+            
+            if (currentTrades.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-gray-400 text-sm">
+                        No trades added yet. Click "Add Trade" to get started.
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = currentTrades.map((trade, index) => `
+                <div class="bg-gray-700/50 rounded p-3 grid grid-cols-12 gap-2 items-center">
+                    <input type="text" value="${trade.match || ''}" placeholder="Match/Event" 
+                           class="input-field col-span-3 text-sm py-1" onchange="updateTrade(${index}, 'match', this.value)">
+                    <input type="text" value="${trade.bet || ''}" placeholder="Bet Type" 
+                           class="input-field col-span-3 text-sm py-1" onchange="updateTrade(${index}, 'bet', this.value)">
+                    <input type="number" value="${trade.odds || ''}" placeholder="Odds" 
+                           class="input-field col-span-1 text-sm py-1" step="0.01" onchange="updateTrade(${index}, 'odds', this.value)">
+                    <input type="number" value="${trade.stake || ''}" placeholder="Stake" 
+                           class="input-field col-span-1 text-sm py-1" onchange="updateTrade(${index}, 'stake', this.value)">
+                    <select class="input-field col-span-2 text-sm py-1" onchange="updateTrade(${index}, 'result', this.value)">
+                        <option value="pending" ${trade.result === 'pending' ? 'selected' : ''}>Pending</option>
+                        <option value="won" ${trade.result === 'won' ? 'selected' : ''}>Won</option>
+                        <option value="lost" ${trade.result === 'lost' ? 'selected' : ''}>Lost</option>
+                        <option value="push" ${trade.result === 'push' ? 'selected' : ''}>Push</option>
+                    </select>
+                    <input type="number" value="${trade.pnl || 0}" placeholder="PNL" 
+                           class="input-field col-span-1 text-sm py-1" step="0.01" onchange="updateTrade(${index}, 'pnl', this.value)">
+                    <button onclick="removeTrade(${index})" class="btn-primary bg-red-600 hover:bg-red-700 col-span-1 text-sm py-1">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function addTradeRow() {
+            currentTrades.push({
+                match: '',
+                bet: '',
+                odds: 0,
+                stake: 0,
+                result: 'pending',
+                pnl: 0
+            });
+            renderTrades(currentTrades);
+        }
+
+        function updateTrade(index, field, value) {
+            currentTrades[index][field] = field === 'odds' || field === 'stake' || field === 'pnl' 
+                ? parseFloat(value) || 0 
+                : value;
+            
+            // Auto-calculate PNL if result is set
+            const trade = currentTrades[index];
+            if (trade.result === 'won' && trade.odds && trade.stake) {
+                trade.pnl = (trade.odds - 1) * trade.stake;
+            } else if (trade.result === 'lost' && trade.stake) {
+                trade.pnl = -trade.stake;
+            } else if (trade.result === 'push') {
+                trade.pnl = 0;
+            }
+            
+            renderTrades(currentTrades);
+        }
+
+        function removeTrade(index) {
+            if (confirm('Remove this trade?')) {
+                currentTrades.splice(index, 1);
+                renderTrades(currentTrades);
+            }
+        }
+
+        function saveDayData() {
+            // Get selected priorities
+            const priorityCheckboxes = document.querySelectorAll('.priority-checkbox:checked');
+            const prioritiesWorkedOn = Array.from(priorityCheckboxes).map(cb => parseInt(cb.value));
+            
+            // Collect all data from the comprehensive form
+            const dayData = {
+                pnl: parseFloat(document.getElementById('modal-pnl').value) || 0,
+                trades: parseInt(document.getElementById('modal-trades').value) || 0,
+                winRate: parseFloat(document.getElementById('modal-winrate').value) || 0,
+                largestWin: parseFloat(document.getElementById('modal-largestwin').value) || 0,
+                morningIntentions: document.getElementById('modal-morning').value || '',
+                focusAreas: document.getElementById('modal-focus').value || '',
+                eveningReflection: document.getElementById('modal-evening').value || '',
+                learned: document.getElementById('modal-learned').value || '',
+                patterns: document.getElementById('modal-patterns').value || '',
+                improvements: document.getElementById('modal-improvements').value || '',
+                individualTrades: currentTrades,
+                prioritiesWorkedOn: prioritiesWorkedOn
+            };
+            
+            PNLManager.setDay(currentYear, currentMonth, selectedDay, dayData);
+            renderCalendar();
+            closeDayModal();
+            
+            alert('Day data saved successfully!');
+        }
+
+        function clearDayData() {
+            if (confirm('Clear all data for this day?')) {
+                PNLManager.setDay(currentYear, currentMonth, selectedDay, { pnl: 0, trades: 0, notes: '' });
+                renderCalendar();
+                closeDayModal();
+            }
+        }
+
+        // Bet Slip Import/Export Functions
+        function showImportModal() {
+            const modal = document.createElement('div');
+            modal.id = 'import-modal';
+            modal.className = 'fixed inset-0 bg-black/70 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-gray-800 rounded-xl p-6 max-w-2xl w-full mx-4 border border-gray-700">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-white">Import Bet Slips</h3>
+                        <button onclick="closeImportModal()" class="text-gray-400 hover:text-white">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Paste JSON Bet Slips</label>
+                            <textarea id="import-json" class="input-field w-full h-64 font-mono text-sm"
+                                placeholder='[
+  {
+    "date": "2025-10-15",
+    "match": "Man City vs Arsenal", 
+    "bet": "Under 2.5 Goals",
+    "odds": 2.10,
+    "stake": 100,
+    "result": "won",
+    "pnl": 110
+  }
+]'></textarea>
+                        </div>
+                        <div class="bg-blue-900/30 border border-blue-500/50 rounded-lg p-3 text-sm">
+                            <strong class="text-blue-300">Format:</strong>
+                            <ul class="mt-2 space-y-1 text-gray-300">
+                                <li>• <strong>date</strong>: YYYY-MM-DD format</li>
+                                <li>• <strong>pnl</strong>: Profit/Loss (positive for wins, negative for losses)</li>
+                                <li>• <strong>result</strong>: "won" or "lost"</li>
+                                <li>• Optional: match, bet, odds, stake for notes</li>
+                            </ul>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="importBetSlips()" class="btn-primary flex-1">
+                                <i class="fas fa-upload mr-2"></i>Import
+                            </button>
+                            <button onclick="showSampleFormat()" class="btn-primary bg-gray-600 hover:bg-gray-700">
+                                <i class="fas fa-info-circle mr-2"></i>Sample Format
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function closeImportModal() {
+            const modal = document.getElementById('import-modal');
+            if (modal) modal.remove();
+        }
+
+        function importBetSlips() {
+            const jsonText = document.getElementById('import-json').value;
+            
+            try {
+                const betSlips = JSON.parse(jsonText);
+                
+                if (!Array.isArray(betSlips)) {
+                    alert('Error: JSON must be an array of bet slips');
+                    return;
+                }
+                
+                let imported = 0;
+                let skipped = 0;
+                
+                betSlips.forEach(slip => {
+                    if (!slip.date || !slip.pnl) {
+                        skipped++;
+                        return;
+                    }
+                    
+                    const date = new Date(slip.date);
+                    const year = date.getFullYear();
+                    const month = date.getMonth();
+                    const day = date.getDate();
+                    
+                    // Get existing day data
+                    const existingData = PNLManager.getDay(year, month, day);
+                    
+                    // Build notes from bet slip details
+                    let notes = existingData.notes || '';
+                    if (slip.match) notes += `${slip.match}: `;
+                    if (slip.bet) notes += `${slip.bet} `;
+                    if (slip.odds) notes += `@ ${slip.odds} `;
+                    if (slip.result) notes += `(${slip.result}) `;
+                    notes += `$${slip.pnl}\n`;
+                    
+                    // Update or create day data
+                    PNLManager.setDay(year, month, day, {
+                        pnl: (existingData.pnl || 0) + parseFloat(slip.pnl),
+                        trades: (existingData.trades || 0) + 1,
+                        notes: notes.trim()
+                    });
+                    
+                    imported++;
+                });
+                
+                renderCalendar();
+                closeImportModal();
+                alert(`Import complete!\n\nImported: ${imported} bet slips\nSkipped: ${skipped}`);
+                
+            } catch (error) {
+                alert('Error parsing JSON: ' + error.message);
+            }
+        }
+
+        function showSampleFormat() {
+            const sample = [
+                {
+                    "date": "2025-10-15",
+                    "match": "Man City vs Arsenal",
+                    "bet": "Under 2.5 Goals",
+                    "odds": 2.10,
+                    "stake": 100,
+                    "result": "won",
+                    "pnl": 110
+                },
+                {
+                    "date": "2025-10-15",
+                    "match": "Lakers vs Warriors",
+                    "bet": "LeBron Over 27.5 pts",
+                    "odds": 1.90,
+                    "stake": 150,
+                    "result": "lost",
+                    "pnl": -150
+                }
+            ];
+            
+            document.getElementById('import-json').value = JSON.stringify(sample, null, 2);
+        }
+
+        function exportData() {
+            const data = PNLManager.loadData();
+            const jsonStr = JSON.stringify(data, null, 2);
+            
+            // Create download link
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `stevesystem_pnl_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('PNL data exported successfully!');
         }
 
         function generateVoices() {
