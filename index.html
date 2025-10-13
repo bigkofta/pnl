@@ -196,21 +196,21 @@
                         <i class="fas fa-dollar-sign text-green-400 mr-3"></i>
                         Daily Capital
                     </h2>
-                    <div class="flex items-center space-x-3">
-                        <button class="text-sm text-gray-400 hover:text-white" onclick="prevDay()" title="Previous Day">
-                            <i class="fas fa-chevron-left"></i>
+                <div class="flex items-center space-x-3">
+                    <button class="text-sm text-gray-400 hover:text-white" onclick="prevDay()" title="Previous Day">
+                        <i class="fas fa-chevron-left"></i>
                     </button>
-                        <span class="text-sm font-semibold cursor-pointer hover:text-blue-400" 
-                              id="current-day-display" 
-                              onclick="jumpToToday()" 
-                              title="Click to jump to today">Today</span>
-                        <button class="text-sm text-gray-400 hover:text-white" onclick="nextDay()" title="Next Day">
-                            <i class="fas fa-chevron-right"></i>
+                    <span class="text-sm font-semibold cursor-pointer hover:text-blue-400" 
+                          id="current-day-display" 
+                          onclick="jumpToToday()" 
+                          title="Click to jump to today">Today</span>
+                    <button id="nextDayBtn" class="text-sm text-gray-400 hover:text-white" onclick="nextDay()" title="Next Day">
+                        <i class="fas fa-chevron-right"></i>
                     </button>
-                        <button class="btn-primary text-sm" onclick="editCurrentDay()">
-                            <i class="fas fa-edit mr-2"></i>Edit Day
+                    <button class="btn-primary text-sm" onclick="editCurrentDay()">
+                        <i class="fas fa-edit mr-2"></i>Edit Day
                     </button>
-                    </div>
+                </div>
                 </div>
                 <div class="text-center mb-6">
                     <div class="metric-value" id="capital-value">$10,000</div>
@@ -241,13 +241,13 @@
                               id="priority-day-display" 
                               onclick="jumpPriorityToToday()" 
                               title="Click to jump to today">Today</span>
-                        <button class="text-sm text-gray-400 hover:text-white" onclick="nextPriorityDay()" title="Next Day">
+                        <button id="nextPriorityBtn" class="text-sm text-gray-400 hover:text-white" onclick="nextPriorityDay()" title="Next Day">
                             <i class="fas fa-chevron-right"></i>
                         </button>
                         <button class="btn-primary text-sm" onclick="openEditPrioritiesModal()">
                             <i class="fas fa-edit mr-2"></i>Manage
                         </button>
-                </div>
+                    </div>
                     </div>
                 <div class="space-y-4" id="priorities-list">
                     <!-- Priorities will be rendered here -->
@@ -798,12 +798,27 @@
             currentViewDate.setHours(0, 0, 0, 0);
             
             const displayEl = document.getElementById('current-day-display');
+            const nextBtn = document.getElementById('nextDayBtn');
             
-            if (currentViewDate.getTime() === today.getTime()) {
+            const isToday = currentViewDate.getTime() === today.getTime();
+            
+            if (isToday) {
                 displayEl.textContent = 'Today';
+                displayEl.className = 'text-sm font-semibold text-blue-400';
+                // Disable next button if viewing today
+                if (nextBtn) {
+                    nextBtn.disabled = true;
+                    nextBtn.className = 'text-sm text-gray-600 cursor-not-allowed';
+                }
             } else {
                 const dayOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][currentViewDate.getDay()];
                 displayEl.textContent = `${dayOfWeek}, ${monthNames[currentViewDate.getMonth()]} ${currentViewDate.getDate()}`;
+                displayEl.className = 'text-sm font-semibold cursor-pointer hover:text-blue-400';
+                // Enable next button if not viewing today
+                if (nextBtn) {
+                    nextBtn.disabled = false;
+                    nextBtn.className = 'text-sm text-gray-400 hover:text-white';
+                }
             }
             
             // Load data for the current view date
@@ -843,14 +858,18 @@
             newDate.setDate(newDate.getDate() + 1);
             newDate.setHours(0, 0, 0, 0);
             
+            console.log('Current view:', currentViewDate.toDateString());
+            console.log('New date:', newDate.toDateString());
+            console.log('Can advance?', newDate.getTime() <= today.getTime());
+            
             // Don't go beyond today
-            if (newDate <= today) {
+            if (newDate.getTime() <= today.getTime()) {
                 currentViewDate = newDate;
-                console.log('Next capital day:', currentViewDate.toDateString());
+                console.log('✓ Advanced to:', currentViewDate.toDateString());
                 updateDayDisplay();
                 updateCapitalChart();
             } else {
-                console.log('Cannot go beyond today');
+                console.log('✗ Already viewing today - button should be disabled');
             }
         }
 
@@ -968,13 +987,28 @@
             currentPriorityDate.setHours(0, 0, 0, 0);
             
             const displayEl = document.getElementById('priority-day-display');
+            const nextBtn = document.getElementById('nextPriorityBtn');
             if (!displayEl) return;
             
-            if (currentPriorityDate.getTime() === today.getTime()) {
+            const isToday = currentPriorityDate.getTime() === today.getTime();
+            
+            if (isToday) {
                 displayEl.textContent = 'Today';
+                displayEl.className = 'text-sm font-semibold text-blue-400';
+                // Disable next button if viewing today
+                if (nextBtn) {
+                    nextBtn.disabled = true;
+                    nextBtn.className = 'text-sm text-gray-600 cursor-not-allowed';
+                }
             } else {
                 const dayOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][currentPriorityDate.getDay()];
                 displayEl.textContent = `${dayOfWeek}, ${monthNames[currentPriorityDate.getMonth()]} ${currentPriorityDate.getDate()}`;
+                displayEl.className = 'text-sm font-semibold cursor-pointer hover:text-blue-400';
+                // Enable next button if not viewing today
+                if (nextBtn) {
+                    nextBtn.disabled = false;
+                    nextBtn.className = 'text-sm text-gray-400 hover:text-white';
+                }
             }
         }
 
@@ -994,12 +1028,16 @@
             newDate.setDate(newDate.getDate() + 1);
             newDate.setHours(0, 0, 0, 0);
             
-            if (newDate <= today) {
+            console.log('Priority - Current:', currentPriorityDate.toDateString());
+            console.log('Priority - New date:', newDate.toDateString());
+            console.log('Priority - Can advance?', newDate.getTime() <= today.getTime());
+            
+            if (newDate.getTime() <= today.getTime()) {
                 currentPriorityDate = newDate;
-                console.log('Next priority day:', currentPriorityDate.toDateString());
+                console.log('✓ Priority advanced to:', currentPriorityDate.toDateString());
                 renderPriorities();
             } else {
-                console.log('Cannot go beyond today');
+                console.log('✗ Already viewing today - button should be disabled');
             }
         }
 
