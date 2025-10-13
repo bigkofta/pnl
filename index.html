@@ -715,15 +715,17 @@
             });
         }
 
+        let capitalChartInstance = null;
+
         function initCapitalChart() {
             const ctx = document.getElementById('capitalChart').getContext('2d');
-            new Chart(ctx, {
+            capitalChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    labels: [],
                     datasets: [{
                         label: 'Capital',
-                        data: [9500, 9750, 9600, 9850, 10000, 9900, 10250],
+                        data: [],
                         borderColor: '#10b981',
                         backgroundColor: 'rgba(16, 185, 129, 0.1)',
                         fill: true,
@@ -752,6 +754,39 @@
                     }
                 }
             });
+            updateCapitalChart();
+        }
+
+        function updateCapitalChart() {
+            if (!capitalChartInstance) return;
+            
+            // Get 7 days of data ending at currentViewDate
+            const labels = [];
+            const data = [];
+            let runningTotal = 10000; // Starting capital
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(currentViewDate);
+                date.setDate(date.getDate() - i);
+                
+                const dayData = PNLManager.getDay(date.getFullYear(), date.getMonth(), date.getDate());
+                const dayOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
+                const monthDay = `${date.getMonth() + 1}/${date.getDate()}`;
+                
+                labels.push(`${dayOfWeek} ${monthDay}`);
+                
+                if (dayData.pnl) {
+                    runningTotal += dayData.pnl;
+                }
+                data.push(runningTotal);
+            }
+            
+            capitalChartInstance.data.labels = labels;
+            capitalChartInstance.data.datasets[0].data = data;
+            capitalChartInstance.update();
+            
+            // Update current capital display
+            document.getElementById('capital-value').textContent = '$' + runningTotal.toLocaleString();
         }
 
         // Dashboard functions
@@ -792,26 +827,39 @@
         }
 
         function prevDay() {
-            currentViewDate.setDate(currentViewDate.getDate() - 1);
+            const newDate = new Date(currentViewDate);
+            newDate.setDate(newDate.getDate() - 1);
+            currentViewDate = newDate;
+            console.log('Previous capital day:', currentViewDate.toDateString());
             updateDayDisplay();
+            updateCapitalChart();
         }
 
         function nextDay() {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            currentViewDate.setDate(currentViewDate.getDate() + 1);
+            
+            const newDate = new Date(currentViewDate);
+            newDate.setDate(newDate.getDate() + 1);
+            newDate.setHours(0, 0, 0, 0);
             
             // Don't go beyond today
-            if (currentViewDate > today) {
-                currentViewDate = new Date(today);
+            if (newDate <= today) {
+                currentViewDate = newDate;
+                console.log('Next capital day:', currentViewDate.toDateString());
+                updateDayDisplay();
+                updateCapitalChart();
+            } else {
+                console.log('Cannot go beyond today');
             }
-            
-            updateDayDisplay();
         }
 
         function jumpToToday() {
             currentViewDate = new Date();
+            currentViewDate.setHours(0, 0, 0, 0);
+            console.log('Jump to today:', currentViewDate.toDateString());
             updateDayDisplay();
+            updateCapitalChart();
         }
 
         function editCurrentDay() {
@@ -931,24 +979,34 @@
         }
 
         function prevPriorityDay() {
-            currentPriorityDate.setDate(currentPriorityDate.getDate() - 1);
+            const newDate = new Date(currentPriorityDate);
+            newDate.setDate(newDate.getDate() - 1);
+            currentPriorityDate = newDate;
+            console.log('Previous priority day:', currentPriorityDate.toDateString());
             renderPriorities();
         }
 
         function nextPriorityDay() {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            currentPriorityDate.setDate(currentPriorityDate.getDate() + 1);
             
-            if (currentPriorityDate > today) {
-                currentPriorityDate = new Date(today);
+            const newDate = new Date(currentPriorityDate);
+            newDate.setDate(newDate.getDate() + 1);
+            newDate.setHours(0, 0, 0, 0);
+            
+            if (newDate <= today) {
+                currentPriorityDate = newDate;
+                console.log('Next priority day:', currentPriorityDate.toDateString());
+                renderPriorities();
+            } else {
+                console.log('Cannot go beyond today');
             }
-            
-            renderPriorities();
         }
 
         function jumpPriorityToToday() {
             currentPriorityDate = new Date();
+            currentPriorityDate.setHours(0, 0, 0, 0);
+            console.log('Jump to today:', currentPriorityDate.toDateString());
             renderPriorities();
         }
 
