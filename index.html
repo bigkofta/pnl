@@ -247,7 +247,7 @@
                         <button class="btn-primary text-sm" onclick="openEditPrioritiesModal()">
                             <i class="fas fa-edit mr-2"></i>Manage
                         </button>
-                    </div>
+                </div>
                     </div>
                 <div class="space-y-4" id="priorities-list">
                     <!-- Priorities will be rendered here -->
@@ -1230,7 +1230,21 @@
             getDay(year, month, day) {
                 const data = this.loadData();
                 const key = `${year}-${month + 1}-${day}`;
-                return data[key] || { pnl: 0, trades: 0, notes: '' };
+                return data[key] || { 
+                    pnl: 0, 
+                    trades: 0, 
+                    notes: '', 
+                    prioritiesWorkedOn: [],
+                    individualTrades: [],
+                    morningIntentions: '',
+                    focusAreas: '',
+                    eveningReflection: '',
+                    learned: '',
+                    patterns: '',
+                    improvements: '',
+                    winRate: 0,
+                    largestWin: 0
+                };
             },
             
             // Set data for specific date
@@ -1417,6 +1431,11 @@
         function openDayModal(day) {
             selectedDay = day;
             const dayData = PNLManager.getDay(currentYear, currentMonth, day);
+            console.log('=== Opening Day Modal ===');
+            console.log('Date:', currentYear, currentMonth + 1, day);
+            console.log('Day Data:', dayData);
+            console.log('Priorities worked on:', dayData.prioritiesWorkedOn);
+            
             const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
                                'July', 'August', 'September', 'October', 'November', 'December'];
             const weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -1580,6 +1599,10 @@
             const priorities = PNLManager.loadPriorities().filter(p => p.active);
             const container = document.getElementById('priority-checkboxes');
             
+            console.log('=== Rendering Priority Checkboxes ===');
+            console.log('All priorities:', priorities);
+            console.log('Selected IDs for this day:', selectedPriorities);
+            
             if (!container) {
                 console.error('Priority checkboxes container not found');
                 return;
@@ -1594,11 +1617,9 @@
                 return;
             }
             
-            console.log('Rendering priority checkboxes:', priorities.length, 'Selected:', selectedPriorities);
-            
             container.innerHTML = priorities.map(priority => {
                 const isChecked = selectedPriorities.includes(priority.id);
-                console.log(`Priority ${priority.id} (${priority.title}): checked=${isChecked}`);
+                console.log(`  Priority ${priority.id} "${priority.title}": checked=${isChecked}`);
                 return `
                     <label class="flex items-center space-x-2 p-3 bg-gray-700/50 rounded cursor-pointer hover:bg-gray-700 transition-colors">
                         <input type="checkbox" 
@@ -1698,6 +1719,11 @@
             const priorityCheckboxes = document.querySelectorAll('.priority-checkbox:checked');
             const prioritiesWorkedOn = Array.from(priorityCheckboxes).map(cb => parseInt(cb.value));
             
+            console.log('=== Saving Day Data ===');
+            console.log('Date:', currentYear, currentMonth + 1, selectedDay);
+            console.log('Selected priority checkboxes:', priorityCheckboxes.length);
+            console.log('Priorities worked on:', prioritiesWorkedOn);
+            
             // Collect all data from the comprehensive form
             const dayData = {
                 pnl: parseFloat(document.getElementById('modal-pnl').value) || 0,
@@ -1713,6 +1739,8 @@
                 individualTrades: currentTrades,
                 prioritiesWorkedOn: prioritiesWorkedOn
             };
+            
+            console.log('Full day data being saved:', dayData);
             
             PNLManager.setDay(currentYear, currentMonth, selectedDay, dayData);
             renderCalendar();
