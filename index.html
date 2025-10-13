@@ -272,6 +272,9 @@
                     <button class="btn-primary text-sm" onclick="exportData()">
                         <i class="fas fa-download mr-2"></i>Export
                     </button>
+                    <button class="btn-primary text-sm bg-yellow-600 hover:bg-yellow-700" onclick="debugShowAllData()">
+                        <i class="fas fa-bug mr-2"></i>Debug
+                    </button>
                     <button class="text-sm text-gray-400 hover:text-white" onclick="prevMonth()">
                         <i class="fas fa-chevron-left"></i>
                     </button>
@@ -1433,8 +1436,10 @@
             const dayData = PNLManager.getDay(currentYear, currentMonth, day);
             console.log('=== Opening Day Modal ===');
             console.log('Date:', currentYear, currentMonth + 1, day);
-            console.log('Day Data:', dayData);
+            console.log('Storage Key:', `${currentYear}-${currentMonth + 1}-${day}`);
+            console.log('Day Data:', JSON.stringify(dayData, null, 2));
             console.log('Priorities worked on:', dayData.prioritiesWorkedOn);
+            console.log('All localStorage data:', localStorage.getItem('stevesystem_pnl_data'));
             
             const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
                                'July', 'August', 'September', 'October', 'November', 'December'];
@@ -1918,6 +1923,56 @@
 
         function openDashboard() {
             window.open('trading_dashboard/dashboard.html', '_blank');
+        }
+
+        // Debug function to view all stored data
+        function debugShowAllData() {
+            const pnlData = PNLManager.loadData();
+            const priorities = PNLManager.loadPriorities();
+            
+            console.clear();
+            console.log('========================================');
+            console.log('ALL STORED PNL DATA:');
+            console.log('========================================');
+            console.log(JSON.stringify(pnlData, null, 2));
+            console.log('');
+            console.log('========================================');
+            console.log('ALL PRIORITIES:');
+            console.log('========================================');
+            console.log(JSON.stringify(priorities, null, 2));
+            console.log('');
+            console.log('========================================');
+            
+            // Create a visual modal
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/70 flex items-center justify-center z-50 overflow-y-auto py-8';
+            modal.innerHTML = `
+                <div class="bg-gray-800 rounded-xl p-6 max-w-4xl w-full mx-4 border border-gray-700">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-white">🐛 Debug: All Stored Data</h3>
+                        <button onclick="this.closest('div.fixed').remove()" class="text-gray-400 hover:text-white">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-4 max-h-[70vh] overflow-y-auto">
+                        <div>
+                            <h4 class="text-lg font-semibold text-white mb-2">PNL Data by Day:</h4>
+                            <pre class="bg-gray-900 p-4 rounded text-xs text-green-400 overflow-x-auto">${JSON.stringify(pnlData, null, 2)}</pre>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-white mb-2">Priorities:</h4>
+                            <pre class="bg-gray-900 p-4 rounded text-xs text-blue-400 overflow-x-auto">${JSON.stringify(priorities, null, 2)}</pre>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex gap-3">
+                        <button onclick="this.closest('div.fixed').remove()" class="btn-primary">Close</button>
+                        <button onclick="if(confirm('Clear ALL data?')) { localStorage.clear(); location.reload(); }" class="btn-primary bg-red-600 hover:bg-red-700">
+                            Clear All Data
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
         }
 
         // Initialize on load
