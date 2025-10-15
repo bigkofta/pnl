@@ -244,9 +244,9 @@
                         <button id="nextPriorityBtn" class="text-sm text-gray-400 hover:text-white" onclick="nextPriorityDay()" title="Next Day">
                             <i class="fas fa-chevron-right"></i>
                         </button>
-                        <button class="btn-primary text-sm" onclick="openEditPrioritiesModal()">
-                            <i class="fas fa-edit mr-2"></i>Manage
-                        </button>
+                    <button class="btn-primary text-sm" onclick="openEditPrioritiesModal()">
+                        <i class="fas fa-edit mr-2"></i>Manage
+                    </button>
                 </div>
                     </div>
                 <div class="space-y-4" id="priorities-list">
@@ -888,6 +888,9 @@
             // Set the calendar to the current view date's month/year
             currentYear = currentViewDate.getFullYear();
             currentMonth = currentViewDate.getMonth();
+            // Sync priorities to this day
+            currentPriorityDate = new Date(currentViewDate);
+            renderPriorities();
             // Open the modal for the currently viewed day
             openDayModal(currentViewDate.getDate());
         }
@@ -911,27 +914,61 @@
             // Update day display
             updatePriorityDayDisplay();
             
-            console.log('Rendering priorities...');
-            const priorities = PNLManager.loadPriorities().filter(p => p.active);
-            console.log('Active priorities:', priorities);
+            console.log('Rendering priorities for date:', currentPriorityDate.toDateString());
             
-            if (priorities.length === 0) {
-                console.log('No active priorities, showing message');
-                container.innerHTML = `
-                    <div class="text-center py-4 text-gray-400 text-sm">
-                        No active priorities. Click "Manage" to add some.
-                    </div>
-                `;
-                return;
-            }
-            
-            // Get day data to check completed priorities
+            // Get day data to see what priorities were worked on THIS specific day
             const dayData = PNLManager.getDay(
                 currentPriorityDate.getFullYear(), 
                 currentPriorityDate.getMonth(), 
                 currentPriorityDate.getDate()
             );
             const completedPriorities = dayData.prioritiesWorkedOn || [];
+            
+            console.log('Priorities worked on this day:', completedPriorities);
+            
+            // If no priorities worked on this day, show empty state
+            if (completedPriorities.length === 0) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                currentPriorityDate.setHours(0, 0, 0, 0);
+                
+                const isToday = currentPriorityDate.getTime() === today.getTime();
+                const isFuture = currentPriorityDate.getTime() > today.getTime();
+                
+                let message = '';
+                if (isFuture) {
+                    message = 'Future day - no priorities yet';
+                } else if (isToday) {
+                    message = 'No priorities worked on today yet. Click "Manage" to add some.';
+                } else {
+                    message = 'No priorities worked on this day';
+                }
+                
+                container.innerHTML = `
+                    <div class="text-center py-4 text-gray-400 text-sm">
+                        ${message}
+                    </div>
+                `;
+                return;
+            }
+            
+            // Get the actual priorities that were worked on this day
+            const allPriorities = PNLManager.loadPriorities();
+            const priorities = allPriorities.filter(p => completedPriorities.includes(p.id));
+            
+            // If no priorities found, show empty state
+            if (priorities.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-gray-400 text-sm">
+                        No priorities worked on this day
+                    </div>
+                `;
+                return;
+            }
+            
+            console.log('All priorities:', allPriorities);
+            console.log('Completed priorities for this day:', completedPriorities);
+            console.log('Filtered priorities:', priorities);
             
             const colorSchemes = [
                 { bg: 'rgba(59, 130, 246, 0.2)', border: 'rgba(59, 130, 246, 0.5)', text: '#93c5fd', badge: 'rgba(59, 130, 246, 0.3)' },
@@ -994,21 +1031,33 @@
             if (!displayEl) return;
             
             const isToday = currentPriorityDate.getTime() === today.getTime();
+            const isTomorrow = currentPriorityDate.getTime() === (new Date(today.getTime() + 24*60*60*1000)).getTime();
+            const isFuture = currentPriorityDate.getTime() > today.getTime();
             
             if (isToday) {
                 displayEl.textContent = 'Today';
                 displayEl.className = 'text-sm font-semibold text-blue-400';
-                // Disable next button if viewing today
-                if (nextBtn) {
-                    nextBtn.disabled = true;
-                    nextBtn.className = 'text-sm text-gray-600 cursor-not-allowed';
-                }
+            } else if (isTomorrow) {
+                displayEl.textContent = 'Tomorrow';
+                displayEl.className = 'text-sm font-semibold text-green-400';
             } else {
                 const dayOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][currentPriorityDate.getDay()];
                 displayEl.textContent = `${dayOfWeek}, ${monthNames[currentPriorityDate.getMonth()]} ${currentPriorityDate.getDate()}`;
                 displayEl.className = 'text-sm font-semibold cursor-pointer hover:text-blue-400';
-                // Enable next button if not viewing today
-                if (nextBtn) {
+            }
+            
+            // Enable/disable next button based on whether we can go forward
+            if (nextBtn) {
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(0, 0, 0, 0);
+                
+                if (currentPriorityDate.getTime() >= tomorrow.getTime()) {
+                    // Already at tomorrow or beyond - disable next
+                    nextBtn.disabled = true;
+                    nextBtn.className = 'text-sm text-gray-600 cursor-not-allowed';
+                } else {
+                    // Can go forward - enable next
                     nextBtn.disabled = false;
                     nextBtn.className = 'text-sm text-gray-400 hover:text-white';
                 }
@@ -1016,14 +1065,20 @@
         }
 
         function prevPriorityDay() {
+            // Navigate to previous day
             const newDate = new Date(currentPriorityDate);
             newDate.setDate(newDate.getDate() - 1);
             currentPriorityDate = newDate;
-            console.log('Previous priority day:', currentPriorityDate.toDateString());
+            
+            // Update calendar view to match
+            currentYear = newDate.getFullYear();
+            currentMonth = newDate.getMonth();
+            renderCalendar();
             renderPriorities();
         }
 
         function nextPriorityDay() {
+            // Navigate to next day (allow tomorrow but not beyond)
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             
@@ -1031,24 +1086,29 @@
             newDate.setDate(newDate.getDate() + 1);
             newDate.setHours(0, 0, 0, 0);
             
-            console.log('Priority - Current:', currentPriorityDate.toDateString());
-            console.log('Priority - New date:', newDate.toDateString());
-            console.log('Priority - Can advance?', newDate.getTime() <= today.getTime());
+            // Allow going to tomorrow (today + 1 day)
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
             
-            if (newDate.getTime() <= today.getTime()) {
+            if (newDate.getTime() <= tomorrow.getTime()) {
                 currentPriorityDate = newDate;
-                console.log('✓ Priority advanced to:', currentPriorityDate.toDateString());
+                
+                // Update calendar view to match
+                currentYear = newDate.getFullYear();
+                currentMonth = newDate.getMonth();
+                renderCalendar();
                 renderPriorities();
-            } else {
-                console.log('✗ Already viewing today - button should be disabled');
             }
         }
 
         function jumpPriorityToToday() {
-            currentPriorityDate = new Date();
-            currentPriorityDate.setHours(0, 0, 0, 0);
-            console.log('Jump to today:', currentPriorityDate.toDateString());
-            renderPriorities();
+            // Jump calendar to today, which will auto-sync priorities
+            const today = new Date();
+            currentYear = today.getFullYear();
+            currentMonth = today.getMonth();
+            renderCalendar();
+            syncPriorityToCalendar();
         }
 
         function togglePriorityForDay(priorityId) {
@@ -1178,6 +1238,7 @@
             });
             renderPrioritiesEditList();
         }
+        
 
         function updatePriority(index, field, value) {
             console.log(`Updating priority ${index}, field: ${field}, value:`, value);
@@ -1198,9 +1259,25 @@
 
         function savePriorities() {
             PNLManager.savePriorities(editingPriorities);
+            
+            // Mark all active priorities as worked on for the current priority date
+            const activePriorities = editingPriorities.filter(p => p.active);
+            const dayData = PNLManager.getDay(
+                currentPriorityDate.getFullYear(), 
+                currentPriorityDate.getMonth(), 
+                currentPriorityDate.getDate()
+            );
+            dayData.prioritiesWorkedOn = activePriorities.map(p => p.id);
+            PNLManager.setDay(
+                currentPriorityDate.getFullYear(), 
+                currentPriorityDate.getMonth(), 
+                currentPriorityDate.getDate(), 
+                dayData
+            );
+            
             renderPriorities();
             closePrioritiesModal();
-            alert('Priorities saved successfully!');
+            alert('Priorities saved and marked as worked on for this day!');
         }
 
         function closePrioritiesModal() {
@@ -1261,11 +1338,7 @@
             // Priorities management
             loadPriorities() {
                 const saved = localStorage.getItem(this.prioritiesKey);
-                return saved ? JSON.parse(saved) : [
-                    { id: 1, title: "Man City vs Arsenal", category: "EPL", description: "High BSI match - Under 2.5 Goals @ 2.10", active: true },
-                    { id: 2, title: "LeBron James Props", category: "NBA", description: "Over 27.5 points - narrative alignment", active: true },
-                    { id: 3, title: "Review Yesterday's Plays", category: "Meta", description: "Update BSI scores + contra analysis", active: true }
-                ];
+                return saved ? JSON.parse(saved) : [];
             },
             
             savePriorities(priorities) {
@@ -1360,7 +1433,14 @@
                     <div class="text-xs text-gray-400 mb-1">${day}</div>
                     <div class="text-sm font-bold ${textColor}">${pnl >= 0 ? '+' : ''}$${pnl}</div>
                 `;
-                dayCell.onclick = () => openDayModal(day);
+                dayCell.onclick = () => {
+                    // Sync priorities to this day when clicked
+                    currentPriorityDate = new Date(currentYear, currentMonth, day);
+                    console.log('Calendar day clicked:', currentPriorityDate.toDateString());
+                    renderPriorities();
+                    // Then open the modal
+                    openDayModal(day);
+                };
                 
                 calendarGrid.appendChild(dayCell);
             }
@@ -1418,6 +1498,8 @@
                 currentYear--;
             }
             renderCalendar();
+            // Sync priorities to first day of new month view
+            syncPriorityToCalendar();
         }
 
         function nextMonth() {
@@ -1427,6 +1509,30 @@
                 currentYear++;
             }
             renderCalendar();
+            // Sync priorities to first day of new month view
+            syncPriorityToCalendar();
+        }
+        
+        function syncPriorityToCalendar() {
+            // Sync priority panel to show the same date as calendar focus
+            // Use the current calendar view date (currentViewDate) if available, otherwise today
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Check if we're viewing a specific day in the calendar
+            if (currentViewDate && 
+                currentViewDate.getFullYear() === currentYear && 
+                currentViewDate.getMonth() === currentMonth) {
+                // Use the currently viewed day
+                currentPriorityDate = new Date(currentViewDate);
+            } else if (currentYear === today.getFullYear() && currentMonth === today.getMonth()) {
+                // Same month as today - show today
+                currentPriorityDate = new Date(today);
+            } else {
+                // Different month - show first day of that month
+                currentPriorityDate = new Date(currentYear, currentMonth, 1);
+            }
+            renderPriorities();
         }
 
         let selectedDay = null;
@@ -1601,36 +1707,33 @@
         }
 
         function renderPriorityCheckboxes(selectedPriorities = []) {
-            const priorities = PNLManager.loadPriorities().filter(p => p.active);
             const container = document.getElementById('priority-checkboxes');
-            
-            console.log('=== Rendering Priority Checkboxes ===');
-            console.log('All priorities:', priorities);
-            console.log('Selected IDs for this day:', selectedPriorities);
-            
             if (!container) {
                 console.error('Priority checkboxes container not found');
                 return;
             }
-            
-            if (priorities.length === 0) {
+
+            // Only show priorities that were selected for THIS DAY
+            const allPriorities = PNLManager.loadPriorities();
+            const prioritiesForDay = allPriorities.filter(p => selectedPriorities.includes(p.id));
+
+            console.log('=== Rendering Priority Checkboxes (day-specific) ===');
+            console.log('Selected IDs for this day:', selectedPriorities);
+            console.log('Resolved priorities for this day:', prioritiesForDay);
+
+            if (prioritiesForDay.length === 0) {
                 container.innerHTML = `
                     <div class="col-span-2 text-center py-2 text-gray-400 text-sm">
-                        No priorities set. Manage priorities from the dashboard.
+                        No priorities for this day.
                     </div>
                 `;
                 return;
             }
-            
-            container.innerHTML = priorities.map(priority => {
-                const isChecked = selectedPriorities.includes(priority.id);
-                console.log(`  Priority ${priority.id} "${priority.title}": checked=${isChecked}`);
+
+            container.innerHTML = prioritiesForDay.map(priority => {
                 return `
-                    <label class="flex items-center space-x-2 p-3 bg-gray-700/50 rounded cursor-pointer hover:bg-gray-700 transition-colors">
-                        <input type="checkbox" 
-                               value="${priority.id}" 
-                               ${isChecked ? 'checked' : ''}
-                               class="priority-checkbox w-4 h-4">
+                    <label class="flex items-center space-x-2 p-3 bg-gray-700/50 rounded">
+                        <input type="checkbox" value="${priority.id}" checked class="priority-checkbox w-4 h-4">
                         <span class="text-sm text-white">${priority.title} <span class="text-gray-400">(${priority.category})</span></span>
                     </label>
                 `;
