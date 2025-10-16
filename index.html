@@ -1356,72 +1356,25 @@
             console.log('Toggle priority:', priorityId);
         }
 
-        // PNL Data Management - Direct file-based storage in repo
+        // PNL Data Management - Back to working localStorage system
         const PNLManager = {
-            dataFile: 'data.json',
             storageKey: 'stevesystem_pnl_data',
             
-            // Load PNL data - try file first, then localStorage
-            async loadData() {
-                try {
-                    const response = await fetch(this.dataFile);
-                    if (response.ok) {
-                        const fileData = await response.json();
-                        console.log('Data loaded from repo file');
-                        return fileData.pnl_data || {};
-                    }
-                } catch (error) {
-                    console.log('File not available, trying localStorage');
-                }
-                
-                // Fallback to localStorage
+            // Load PNL data from localStorage
+            loadData() {
                 const saved = localStorage.getItem(this.storageKey);
                 return saved ? JSON.parse(saved) : {};
             },
             
-            // Save PNL data - save directly to repo file
-            async saveData(data) {
-                try {
-                    // Load existing file data
-                    let fileData = { pnl_data: {}, priorities: [], last_updated: new Date().toISOString() };
-                    try {
-                        const response = await fetch(this.dataFile);
-                        if (response.ok) {
-                            fileData = await response.json();
-                        }
-                    } catch (e) {
-                        console.log('Creating new data file');
-                    }
-                    
-                    // Update with new data
-                    fileData.pnl_data = data;
-                    fileData.last_updated = new Date().toISOString();
-                    
-                    // Save directly to file (this will be committed to repo)
-                    const response = await fetch('/api/save-data', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(fileData)
-                    });
-                    
-                    if (response.ok) {
-                        console.log('Data saved to repo file');
-                        // Also save to localStorage as backup
-                        localStorage.setItem(this.storageKey, JSON.stringify(data));
-                    } else {
-                        throw new Error('Failed to save to file');
-                    }
-                } catch (error) {
-                    console.log('File save failed, using localStorage only');
-                    localStorage.setItem(this.storageKey, JSON.stringify(data));
-                }
-                
+            // Save PNL data to localStorage
+            saveData(data) {
+                localStorage.setItem(this.storageKey, JSON.stringify(data));
                 return true;
             },
             
             // Get data for specific date
-            async getDay(year, month, day) {
-                const data = await this.loadData();
+            getDay(year, month, day) {
+                const data = this.loadData();
                 const key = `${year}-${month + 1}-${day}`;
                 return data[key] || { 
                     pnl: 0, 
@@ -1441,11 +1394,11 @@
             },
             
             // Set data for specific date
-            async setDay(year, month, day, dayData) {
-                const data = await this.loadData();
+            setDay(year, month, day, dayData) {
+                const data = this.loadData();
                 const key = `${year}-${month + 1}-${day}`;
                 data[key] = dayData;
-                return await this.saveData(data);
+                return this.saveData(data);
             },
             
             // Priorities management

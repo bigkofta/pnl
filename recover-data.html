@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recover Data - SteveSystem</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-red-400">🚨 Data Recovery Tool</h1>
+        
+        <div class="space-y-6">
+            <!-- Check Current Data -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 text-blue-400">📊 Check Current localStorage Data</h2>
+                <button onclick="checkData()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded mb-4">
+                    Check Data
+                </button>
+                <div id="data-status" class="mt-4"></div>
+            </div>
+            
+            <!-- Restore from Backup -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 text-green-400">🔄 Restore from File Backup</h2>
+                <p class="text-gray-300 mb-4">If you have a backup file, upload it to restore your data.</p>
+                <input type="file" id="backup-file" accept=".json" class="mb-4">
+                <button onclick="restoreFromFile()" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded">
+                    Restore from File
+                </button>
+                <div id="restore-status" class="mt-4"></div>
+            </div>
+            
+            <!-- Manual Data Entry -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 text-yellow-400">✏️ Manual Data Entry</h2>
+                <p class="text-gray-300 mb-4">If you remember your data, you can enter it manually.</p>
+                <textarea id="manual-data" placeholder="Paste your data here..." class="w-full h-32 bg-gray-700 text-white p-4 rounded mb-4"></textarea>
+                <button onclick="restoreManual()" class="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded">
+                    Restore Manual Data
+                </button>
+                <div id="manual-status" class="mt-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function checkData() {
+            try {
+                const pnlData = localStorage.getItem('stevesystem_pnl_data');
+                const prioritiesData = localStorage.getItem('stevesystem_priorities');
+                
+                if (pnlData || prioritiesData) {
+                    document.getElementById('data-status').innerHTML = '<p class="text-green-400">✅ Data found in localStorage! Your data is safe.</p>';
+                } else {
+                    document.getElementById('data-status').innerHTML = '<p class="text-red-400">❌ No data found in localStorage. Data may have been lost.</p>';
+                }
+            } catch (error) {
+                document.getElementById('data-status').innerHTML = '<p class="text-red-400">❌ Error checking data: ' + error.message + '</p>';
+            }
+        }
+        
+        function restoreFromFile() {
+            const fileInput = document.getElementById('backup-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                document.getElementById('restore-status').innerHTML = '<p class="text-red-400">❌ Please select a file first</p>';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.pnl_data) {
+                        localStorage.setItem('stevesystem_pnl_data', JSON.stringify(data.pnl_data));
+                    }
+                    if (data.priorities) {
+                        localStorage.setItem('stevesystem_priorities', JSON.stringify(data.priorities));
+                    }
+                    
+                    document.getElementById('restore-status').innerHTML = '<p class="text-green-400">✅ Data restored successfully!</p>';
+                } catch (error) {
+                    document.getElementById('restore-status').innerHTML = '<p class="text-red-400">❌ Error restoring data: ' + error.message + '</p>';
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        function restoreManual() {
+            try {
+                const data = document.getElementById('manual-data').value;
+                if (!data.trim()) {
+                    document.getElementById('manual-status').innerHTML = '<p class="text-red-400">❌ Please enter data first</p>';
+                    return;
+                }
+                
+                const parsedData = JSON.parse(data);
+                localStorage.setItem('stevesystem_pnl_data', JSON.stringify(parsedData));
+                
+                document.getElementById('manual-status').innerHTML = '<p class="text-green-400">✅ Manual data restored successfully!</p>';
+            } catch (error) {
+                document.getElementById('manual-status').innerHTML = '<p class="text-red-400">❌ Error parsing data: ' + error.message + '</p>';
+            }
+        }
+        
+        // Auto-check data on page load
+        window.onload = function() {
+            checkData();
+        };
+    </script>
+</body>
+</html>
