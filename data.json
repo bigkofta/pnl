@@ -1,36 +1,30 @@
 {
-  "pnl_data": {
-    "2025-10-16": {
-      "pnl": 312413,
-      "trades": 0,
-      "winRate": 0,
-      "largestWin": 0,
-      "morningIntentions": "",
-      "focusAreas": "",
-      "eveningReflection": "",
-      "learned": "",
-      "patterns": "",
-      "improvements": "",
-      "individualTrades": [],
-      "priorities": []
-    },
-    "2025-10-15": {
-      "pnl": 321514,
-      "trades": 0,
-      "winRate": 0,
-      "largestWin": 0,
-      "morningIntentions": "",
-      "focusAreas": "",
-      "eveningReflection": "",
-      "learned": "",
-      "patterns": "",
-      "improvements": "",
-      "individualTrades": [],
-      "priorities": []
-    }
+  "2025-10-16": {
+    "pnl": 312413,
+    "trades": 0,
+    "winRate": 0,
+    "largestWin": 0,
+    "morningIntentions": "",
+    "focusAreas": "",
+    "eveningReflection": "",
+    "learned": "",
+    "patterns": "",
+    "improvements": "",
+    "individualTrades": [],
+    "priorities": []
   },
-  "priorities": [],
-  "last_updated": "2025-10-16T12:30:08.639Z",
-  "synced_from": "localStorage",
-  "merged_from": "localStorage + server"
+  "2025-10-15": {
+    "pnl": 321514,
+    "trades": 0,
+    "winRate": 0,
+    "largestWin": 0,
+    "morningIntentions": "",
+    "focusAreas": "",
+    "eveningReflection": "",
+    "learned": "",
+    "patterns": "",
+    "improvements": "",
+    "individualTrades": [],
+    "priorities": []
+  }
 }
