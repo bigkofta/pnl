@@ -1356,25 +1356,69 @@
             console.log('Toggle priority:', priorityId);
         }
 
-        // PNL Data Management with localStorage
+        // PNL Data Management - File-based storage that works across computers
         const PNLManager = {
+            dataFile: 'data.json',
             storageKey: 'stevesystem_pnl_data',
             
-            // Load PNL data from localStorage
-            loadData() {
+            // Load PNL data - try file first, then localStorage
+            async loadData() {
+                try {
+                    const response = await fetch(this.dataFile);
+                    if (response.ok) {
+                        const fileData = await response.json();
+                        console.log('Data loaded from file');
+                        return fileData.pnl_data || {};
+                    }
+                } catch (error) {
+                    console.log('File not available, trying localStorage');
+                }
+                
+                // Fallback to localStorage
                 const saved = localStorage.getItem(this.storageKey);
                 return saved ? JSON.parse(saved) : {};
             },
             
-            // Save PNL data to localStorage
-            saveData(data) {
+            // Save PNL data - save to both file and localStorage
+            async saveData(data) {
+                try {
+                    // Load existing file data
+                    let fileData = { pnl_data: {}, priorities: [], last_updated: new Date().toISOString() };
+                    try {
+                        const response = await fetch(this.dataFile);
+                        if (response.ok) {
+                            fileData = await response.json();
+                        }
+                    } catch (e) {
+                        console.log('Creating new data file');
+                    }
+                    
+                    // Update with new data
+                    fileData.pnl_data = data;
+                    fileData.last_updated = new Date().toISOString();
+                    
+                    // Save to file via server
+                    const response = await fetch('/api/save-data', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(fileData)
+                    });
+                    
+                    if (response.ok) {
+                        console.log('Data saved to file');
+                    }
+                } catch (error) {
+                    console.log('File save failed, using localStorage only');
+                }
+                
+                // Always save to localStorage as backup
                 localStorage.setItem(this.storageKey, JSON.stringify(data));
                 return true;
             },
             
             // Get data for specific date
-            getDay(year, month, day) {
-                const data = this.loadData();
+            async getDay(year, month, day) {
+                const data = await this.loadData();
                 const key = `${year}-${month + 1}-${day}`;
                 return data[key] || { 
                     pnl: 0, 
@@ -1394,11 +1438,11 @@
             },
             
             // Set data for specific date
-            setDay(year, month, day, dayData) {
-                const data = this.loadData();
+            async setDay(year, month, day, dayData) {
+                const data = await this.loadData();
                 const key = `${year}-${month + 1}-${day}`;
                 data[key] = dayData;
-                return this.saveData(data);
+                return await this.saveData(data);
             },
             
             // Priorities management

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migrate localStorage Data</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">🔄 Migrate localStorage Data to File System</h1>
+        
+        <div class="space-y-6">
+            <!-- Current Data Display -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 text-blue-400">📊 Current localStorage Data</h2>
+                <button onclick="showCurrentData()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded mb-4">
+                    Show Current Data
+                </button>
+                <pre id="current-data" class="bg-gray-900 p-4 rounded text-sm overflow-auto max-h-96 hidden"></pre>
+            </div>
+            
+            <!-- Migration Section -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 text-green-400">🚀 Migrate to File System</h2>
+                <p class="text-gray-300 mb-4">This will copy your localStorage data to the file system so it transfers between computers.</p>
+                <button onclick="migrateData()" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded">
+                    Migrate Data Now
+                </button>
+                <div id="migration-status" class="mt-4"></div>
+            </div>
+            
+            <!-- Test Section -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 text-yellow-400">🧪 Test File System</h2>
+                <button onclick="testFileSystem()" class="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded">
+                    Test File System Access
+                </button>
+                <div id="test-status" class="mt-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showCurrentData() {
+            try {
+                const pnlData = localStorage.getItem('stevesystem_pnl_data');
+                const prioritiesData = localStorage.getItem('stevesystem_priorities');
+                
+                const currentData = {
+                    pnlData: pnlData ? JSON.parse(pnlData) : {},
+                    prioritiesData: prioritiesData ? JSON.parse(prioritiesData) : []
+                };
+                
+                const preview = document.getElementById('current-data');
+                preview.textContent = JSON.stringify(currentData, null, 2);
+                preview.classList.remove('hidden');
+            } catch (error) {
+                document.getElementById('current-data').textContent = 'Error loading data: ' + error.message;
+            }
+        }
+        
+        async function migrateData() {
+            try {
+                const pnlData = localStorage.getItem('stevesystem_pnl_data');
+                const prioritiesData = localStorage.getItem('stevesystem_priorities');
+                
+                if (!pnlData && !prioritiesData) {
+                    document.getElementById('migration-status').innerHTML = '<p class="text-yellow-400">⚠️ No data found in localStorage</p>';
+                    return;
+                }
+                
+                const migrationData = {
+                    pnl_data: pnlData ? JSON.parse(pnlData) : {},
+                    priorities: prioritiesData ? JSON.parse(prioritiesData) : [],
+                    last_updated: new Date().toISOString(),
+                    migrated_from: 'localStorage'
+                };
+                
+                // Save to file system
+                const response = await fetch('/api/save-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(migrationData)
+                });
+                
+                if (response.ok) {
+                    document.getElementById('migration-status').innerHTML = '<p class="text-green-400">✅ Data migrated successfully! Your data is now saved to the file system and will transfer between computers.</p>';
+                } else {
+                    throw new Error('Failed to save to file system');
+                }
+            } catch (error) {
+                document.getElementById('migration-status').innerHTML = '<p class="text-red-400">❌ Migration failed: ' + error.message + '</p>';
+            }
+        }
+        
+        async function testFileSystem() {
+            try {
+                const response = await fetch('/api/get-data');
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('test-status').innerHTML = '<p class="text-green-400">✅ File system is working! Data: ' + JSON.stringify(data).substring(0, 100) + '...</p>';
+                } else {
+                    throw new Error('Failed to access file system');
+                }
+            } catch (error) {
+                document.getElementById('test-status').innerHTML = '<p class="text-red-400">❌ File system test failed: ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>
