@@ -1356,7 +1356,7 @@
             console.log('Toggle priority:', priorityId);
         }
 
-        // PNL Data Management - File-based storage that works across computers
+        // PNL Data Management - Direct file-based storage in repo
         const PNLManager = {
             dataFile: 'data.json',
             storageKey: 'stevesystem_pnl_data',
@@ -1367,7 +1367,7 @@
                     const response = await fetch(this.dataFile);
                     if (response.ok) {
                         const fileData = await response.json();
-                        console.log('Data loaded from file');
+                        console.log('Data loaded from repo file');
                         return fileData.pnl_data || {};
                     }
                 } catch (error) {
@@ -1379,7 +1379,7 @@
                 return saved ? JSON.parse(saved) : {};
             },
             
-            // Save PNL data - save to both file and localStorage
+            // Save PNL data - save directly to repo file
             async saveData(data) {
                 try {
                     // Load existing file data
@@ -1397,7 +1397,7 @@
                     fileData.pnl_data = data;
                     fileData.last_updated = new Date().toISOString();
                     
-                    // Save to file via server
+                    // Save directly to file (this will be committed to repo)
                     const response = await fetch('/api/save-data', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -1405,14 +1405,17 @@
                     });
                     
                     if (response.ok) {
-                        console.log('Data saved to file');
+                        console.log('Data saved to repo file');
+                        // Also save to localStorage as backup
+                        localStorage.setItem(this.storageKey, JSON.stringify(data));
+                    } else {
+                        throw new Error('Failed to save to file');
                     }
                 } catch (error) {
                     console.log('File save failed, using localStorage only');
+                    localStorage.setItem(this.storageKey, JSON.stringify(data));
                 }
                 
-                // Always save to localStorage as backup
-                localStorage.setItem(this.storageKey, JSON.stringify(data));
                 return true;
             },
             

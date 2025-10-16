@@ -19,6 +19,17 @@ app.post('/api/save-data', (req, res) => {
         fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
         console.log('Data saved to file:', filePath);
         
+        // Auto-commit to git
+        try {
+            const { execSync } = require('child_process');
+            execSync('git add data.json', { stdio: 'pipe' });
+            const timestamp = new Date().toISOString();
+            execSync(`git commit -m "Auto-save: Update PNL data - ${timestamp}"`, { stdio: 'pipe' });
+            console.log('✅ Data auto-committed to repository');
+        } catch (gitError) {
+            console.log('⚠️ Auto-commit failed:', gitError.message);
+        }
+        
         res.json({ success: true, message: 'Data saved successfully' });
     } catch (error) {
         console.error('Error saving data:', error);
