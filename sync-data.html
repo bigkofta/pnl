@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sync Data - SteveSystem</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-green-400">🔄 Sync Data to Server</h1>
+        
+        <div class="space-y-6">
+            <!-- Auto Sync -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 text-blue-400">🚀 Auto Sync to Server</h2>
+                <p class="text-gray-300 mb-4">This will copy your localStorage data to the server so it works on any computer.</p>
+                <button onclick="syncToServer()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">
+                    Sync Data to Server
+                </button>
+                <div id="sync-status" class="mt-4"></div>
+            </div>
+            
+            <!-- Check Data -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 text-yellow-400">📊 Check Current Data</h2>
+                <button onclick="checkData()" class="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded mb-4">
+                    Check localStorage Data
+                </button>
+                <div id="data-preview" class="bg-gray-900 p-4 rounded text-sm overflow-auto max-h-96 hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function syncToServer() {
+            try {
+                // Get localStorage data
+                const pnlData = localStorage.getItem('stevesystem_pnl_data');
+                const prioritiesData = localStorage.getItem('stevesystem_priorities');
+                
+                if (!pnlData && !prioritiesData) {
+                    document.getElementById('sync-status').innerHTML = '<p class="text-yellow-400">⚠️ No data found in localStorage</p>';
+                    return;
+                }
+                
+                // Prepare data for server
+                const serverData = {
+                    pnl_data: pnlData ? JSON.parse(pnlData) : {},
+                    priorities: prioritiesData ? JSON.parse(prioritiesData) : [],
+                    last_updated: new Date().toISOString(),
+                    synced_from: 'localStorage'
+                };
+                
+                // Send to server
+                const response = await fetch('/api/save-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(serverData)
+                });
+                
+                if (response.ok) {
+                    document.getElementById('sync-status').innerHTML = '<p class="text-green-400">✅ Data synced to server! Now it will work on any computer when you clone the repo.</p>';
+                } else {
+                    throw new Error('Failed to sync to server');
+                }
+            } catch (error) {
+                document.getElementById('sync-status').innerHTML = '<p class="text-red-400">❌ Sync failed: ' + error.message + '</p>';
+            }
+        }
+        
+        function checkData() {
+            try {
+                const pnlData = localStorage.getItem('stevesystem_pnl_data');
+                const prioritiesData = localStorage.getItem('stevesystem_priorities');
+                
+                const currentData = {
+                    pnlData: pnlData ? JSON.parse(pnlData) : {},
+                    prioritiesData: prioritiesData ? JSON.parse(prioritiesData) : []
+                };
+                
+                const preview = document.getElementById('data-preview');
+                preview.textContent = JSON.stringify(currentData, null, 2);
+                preview.classList.remove('hidden');
+            } catch (error) {
+                document.getElementById('data-preview').textContent = 'Error loading data: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

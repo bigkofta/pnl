@@ -1356,25 +1356,64 @@
             console.log('Toggle priority:', priorityId);
         }
 
-        // PNL Data Management - Back to working localStorage system
+        // PNL Data Management - localStorage with server sync
         const PNLManager = {
             storageKey: 'stevesystem_pnl_data',
+            dataFile: 'data.json',
             
-            // Load PNL data from localStorage
-            loadData() {
+            // Load PNL data - try server first, then localStorage
+            async loadData() {
+                try {
+                    // Try to load from server file first
+                    const response = await fetch(this.dataFile);
+                    if (response.ok) {
+                        const fileData = await response.json();
+                        if (fileData.pnl_data && Object.keys(fileData.pnl_data).length > 0) {
+                            console.log('Data loaded from server file');
+                            // Also sync to localStorage
+                            localStorage.setItem(this.storageKey, JSON.stringify(fileData.pnl_data));
+                            return fileData.pnl_data;
+                        }
+                    }
+                } catch (error) {
+                    console.log('Server file not available, using localStorage');
+                }
+                
+                // Fallback to localStorage
                 const saved = localStorage.getItem(this.storageKey);
                 return saved ? JSON.parse(saved) : {};
             },
             
-            // Save PNL data to localStorage
-            saveData(data) {
+            // Save PNL data - save to both localStorage and server
+            async saveData(data) {
+                // Always save to localStorage first
                 localStorage.setItem(this.storageKey, JSON.stringify(data));
+                
+                // Try to save to server file
+                try {
+                    const response = await fetch('/api/save-data', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            pnl_data: data,
+                            priorities: [],
+                            last_updated: new Date().toISOString()
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        console.log('Data synced to server');
+                    }
+                } catch (error) {
+                    console.log('Server sync failed, data saved locally');
+                }
+                
                 return true;
             },
             
             // Get data for specific date
-            getDay(year, month, day) {
-                const data = this.loadData();
+            async getDay(year, month, day) {
+                const data = await this.loadData();
                 const key = `${year}-${month + 1}-${day}`;
                 return data[key] || { 
                     pnl: 0, 
@@ -1394,11 +1433,11 @@
             },
             
             // Set data for specific date
-            setDay(year, month, day, dayData) {
-                const data = this.loadData();
+            async setDay(year, month, day, dayData) {
+                const data = await this.loadData();
                 const key = `${year}-${month + 1}-${day}`;
                 data[key] = dayData;
-                return this.saveData(data);
+                return await this.saveData(data);
             },
             
             // Priorities management
