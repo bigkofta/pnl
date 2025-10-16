@@ -1,5 +1,20 @@
 {
-  "pnl_data": {},
+  "pnl_data": {
+    "2025-10-16": {
+      "pnl": 312413,
+      "trades": 0,
+      "winRate": 0,
+      "largestWin": 0,
+      "morningIntentions": "",
+      "focusAreas": "",
+      "eveningReflection": "",
+      "learned": "",
+      "patterns": "",
+      "improvements": "",
+      "individualTrades": [],
+      "priorities": []
+    }
+  },
   "priorities": [],
-  "last_updated": "2024-01-01T00:00:00.000Z"
+  "last_updated": "2025-10-16T10:50:15.771Z"
 }
