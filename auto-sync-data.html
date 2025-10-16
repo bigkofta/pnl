@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Sync Data</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-green-400">🔄 Auto Sync Complete Data</h1>
+        
+        <div class="space-y-6">
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 text-blue-400">📊 Automatically Syncing Your Complete Data</h2>
+                <p class="text-gray-300 mb-4">This will automatically extract your complete localStorage data and save it to the server.</p>
+                <button onclick="autoSync()" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded">
+                    AUTO SYNC NOW
+                </button>
+                <div id="sync-status" class="mt-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function autoSync() {
+            try {
+                // Get localStorage data
+                const pnlData = localStorage.getItem('stevesystem_pnl_data');
+                
+                if (!pnlData) {
+                    document.getElementById('sync-status').innerHTML = '<p class="text-yellow-400">⚠️ No data found in localStorage</p>';
+                    return;
+                }
+                
+                const data = JSON.parse(pnlData);
+                console.log('Auto syncing complete data:', data);
+                
+                // Save to server
+                const response = await fetch('/api/data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    // Also save as backup
+                    await fetch('/api/save-backup', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    document.getElementById('sync-status').innerHTML = '<p class="text-green-400">✅ COMPLETE DATA AUTO-SYNCED! The server now has your real data. Refresh the main dashboard.</p>';
+                } else {
+                    throw new Error('Failed to sync data');
+                }
+            } catch (error) {
+                document.getElementById('sync-status').innerHTML = '<p class="text-red-400">❌ Auto sync failed: ' + error.message + '</p>';
+            }
+        }
+        
+        // Auto-run on page load
+        window.onload = function() {
+            autoSync();
+        };
+    </script>
+</body>
+</html>

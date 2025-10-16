@@ -150,6 +150,20 @@
     </style>
 </head>
 <body>
+    <!-- Loading Barrier - Blocks UI until data is ready -->
+    <div id="loading-barrier" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column;">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4 animate-pulse">
+                <i class="fas fa-chart-line text-white text-2xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-2">Loading Trading Data...</h2>
+            <p class="text-gray-400">Preparing your complete dashboard</p>
+            <div class="mt-4 w-64 bg-gray-700 rounded-full h-2">
+                <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full animate-pulse" style="width: 100%"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Header -->
     <header class="bg-black/50 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-6 py-4">
@@ -244,14 +258,14 @@
                         <button id="nextPriorityBtn" class="text-sm text-gray-400 hover:text-white" onclick="nextPriorityDay()" title="Next Day">
                             <i class="fas fa-chevron-right"></i>
                         </button>
-                        <button class="btn-primary text-sm" onclick="openEditPrioritiesModal()">
-                            <i class="fas fa-edit mr-2"></i>Manage
-                        </button>
+                    <button class="btn-primary text-sm" onclick="openEditPrioritiesModal()">
+                        <i class="fas fa-edit mr-2"></i>Manage
+                    </button>
                         <button class="btn-primary text-sm bg-green-600 hover:bg-green-700" onclick="openEditPrioritiesModal()">
                             <i class="fas fa-plus mr-2"></i>Add
-                        </button>
-                    </div>
+                    </button>
                 </div>
+                    </div>
                 <div class="space-y-4" id="priorities-list">
                     <!-- Priorities will be rendered here -->
                     </div>
@@ -677,17 +691,25 @@
     </div>
 
     <script>
-        // Initialize dashboard
-        async function initDashboard() {
+        // Single Entry Point - The ONLY initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎯 PAGE LOADED - Starting data initialization');
+            
+            // Start the ONE data flow
+            window.pnlManager.initialize();
+            
+            // Initialize session time (non-data related)
             updateSessionTime();
             setInterval(updateSessionTime, 1000);
-            initSentimentChart();
-            await initCapitalChart();
-            initPNLChart();
-            updateThermometer(73);
-            await renderPriorities();
-            updateDayDisplay();
-        }
+            
+            // Fallback: Ensure calendar renders after a delay
+            setTimeout(() => {
+                if (window.pnlManager && window.pnlManager.data) {
+                    console.log('🔄 Fallback: Rendering calendar after delay');
+                    window.pnlManager.renderCalendar();
+                }
+            }, 1000);
+        });
 
         function updateSessionTime() {
             document.getElementById('session-time').textContent = new Date().toLocaleTimeString();
@@ -766,6 +788,8 @@
         async function updateCapitalChart() {
             if (!capitalChartInstance) return;
             
+            console.log('=== CAPITAL CHART DEBUG ===');
+            
             // Get all days in the current month to match monthly calendar
             const firstDay = new Date(currentYear, currentMonth, 1);
             const lastDay = new Date(currentYear, currentMonth + 1, 0);
@@ -792,6 +816,9 @@
             }
             
             console.log('Final running total for graph:', runningTotal);
+            console.log('Days processed:', daysInMonth);
+            console.log('Data points:', data.length);
+            console.log('========================');
             
             capitalChartInstance.data.labels = labels;
             capitalChartInstance.data.datasets[0].data = data;
@@ -912,7 +939,7 @@
             }
         }
 
-        async function renderPriorities() {
+        window.renderPriorities = async function() {
             const container = document.getElementById('priorities-list');
             
             if (!container) {
@@ -1283,24 +1310,24 @@
         function savePriorities() {
             try {
                 // Save the day-specific priorities
-                const dayData = PNLManager.getDay(
-                    currentPriorityDate.getFullYear(), 
-                    currentPriorityDate.getMonth(), 
-                    currentPriorityDate.getDate()
-                );
+            const dayData = PNLManager.getDay(
+                currentPriorityDate.getFullYear(), 
+                currentPriorityDate.getMonth(), 
+                currentPriorityDate.getDate()
+            );
                 
                 dayData.priorities = [...editingPriorities];
                 
-                PNLManager.setDay(
-                    currentPriorityDate.getFullYear(), 
-                    currentPriorityDate.getMonth(), 
-                    currentPriorityDate.getDate(), 
-                    dayData
-                );
-                
+            PNLManager.setDay(
+                currentPriorityDate.getFullYear(), 
+                currentPriorityDate.getMonth(), 
+                currentPriorityDate.getDate(), 
+                dayData
+            );
+            
                 // Save silently and close
-                renderPriorities();
-                closePrioritiesModal();
+            renderPriorities();
+            closePrioritiesModal();
             } catch (error) {
                 console.error('Error saving priorities:', error);
                 // Still close the modal even if there's an error
@@ -1356,72 +1383,248 @@
             console.log('Toggle priority:', priorityId);
         }
 
-        // PNL Data Management - Server-compatible approach
-        const PNLManager = {
-            storageKey: 'stevesystem_pnl_data',
-            
-            // Load PNL data - try server endpoint first, then localStorage
-            async loadData() {
-                try {
-                    // Try to load from server endpoint first
-                    const response = await fetch('/api/data');
-                    if (response.ok) {
-                        const data = await response.json();
-                        console.log('Data loaded from server');
-                        // Also sync to localStorage as backup
-                        localStorage.setItem(this.storageKey, JSON.stringify(data));
-                        return data;
-                    }
-                } catch (error) {
-                    console.log('Server loading failed, trying localStorage fallback...');
+        // Single PNL Data Manager - The ONLY data controller
+        class PNLDataManager {
+            constructor() {
+                this.data = null;
+                this.isLoading = false;
+                this.hasLoaded = false;
+                this.storageKey = 'stevesystem_pnl_data';
+            }
+
+            async initialize() {
+                if (this.isLoading || this.hasLoaded) {
+                    console.log('⚠️ PNLDataManager already initialized, skipping...');
+                    return;
                 }
                 
-                // Fallback to localStorage
-                const savedData = localStorage.getItem(this.storageKey);
-                if (savedData) {
-                    return JSON.parse(savedData);
-                }
+                this.isLoading = true;
+                console.log('🚀 START: Loading data...');
                 
-                // Final fallback - return empty structure
-                return {};
-            },
-            
-            // Save PNL data - save to both server and localStorage
-            async saveData(data) {
                 try {
-                    // Save to server
-                    const response = await fetch('/api/data', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(data)
+                    // Load data ONCE
+                    this.data = await this.loadData();
+                    console.log('✅ SUCCESS: Data loaded', {
+                        keys: Object.keys(this.data),
+                        totalDays: Object.keys(this.data).length,
+                        sampleData: Object.entries(this.data).slice(0, 3)
                     });
                     
-                    if (response.ok) {
-                        console.log('Data saved to server');
-                    }
+                    // Process data ONCE
+                    this.processData();
                     
-                    // Also save to localStorage as backup
-                    localStorage.setItem(this.storageKey, JSON.stringify(data));
+                    // Render EVERYTHING ONCE
+                    this.renderAll();
+                    
+                    this.hasLoaded = true;
+                    this.removeLoadingBarrier();
                     
                 } catch (error) {
-                    console.error('Server save failed, using localStorage only');
-                    localStorage.setItem(this.storageKey, JSON.stringify(data));
+                    console.error('❌ FAILED: Data loading failed', error);
+                } finally {
+                    this.isLoading = false;
+                }
+            }
+
+            async loadData() {
+                console.log('📡 Fetching from /api/data...');
+                const response = await fetch('/api/data');
+                if (!response.ok) throw new Error('API failed');
+                const data = await response.json();
+                
+                // Also sync to localStorage as backup
+                localStorage.setItem(this.storageKey, JSON.stringify(data));
+                return data;
+            }
+
+            processData() {
+                console.log('🔄 Processing data...');
+                // Calculate EVERYTHING once
+                this.totals = this.calculateTotals();
+                this.monthlyData = this.calculateMonthlyData();
+                this.chartData = this.prepareChartData();
+                console.log('✅ Data processed - Total PNL:', this.totals);
+            }
+
+            calculateTotals() {
+                return Object.values(this.data).reduce((sum, day) => sum + (day.pnl || 0), 0);
+            }
+
+            calculateMonthlyData() {
+                // Calculate monthly data for calendar
+                const monthlyData = {};
+                Object.entries(this.data).forEach(([dateKey, dayData]) => {
+                    monthlyData[dateKey] = {
+                        pnl: dayData.pnl || 0,
+                        trades: dayData.trades || 0,
+                        priorities: dayData.priorities || []
+                    };
+                });
+                return monthlyData;
+            }
+
+            prepareChartData() {
+                // Prepare chart data for the current month
+                const currentDate = new Date();
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                
+                const labels = [];
+                const data = [];
+                let runningTotal = 10000; // Starting capital
+                
+                console.log('🔄 Preparing chart data for month:', month + 1, year);
+                console.log('📊 Available data keys:', Object.keys(this.data));
+                
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const key = `${year}-${month + 1}-${day}`;
+                    const dayData = this.data[key] || { pnl: 0 };
+                    const date = new Date(year, month, day);
+                    const dayOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
+                    const monthDay = `${date.getMonth() + 1}/${date.getDate()}`;
+                    
+                    labels.push(`${dayOfWeek} ${monthDay}`);
+                    
+                    if (dayData.pnl) {
+                        runningTotal += dayData.pnl;
+                        console.log(`Day ${day}: PNL ${dayData.pnl}, Running Total: ${runningTotal}`);
+                    }
+                    data.push(runningTotal);
                 }
                 
-                return true;
-            },
-            
-            // Get data for specific date
+                console.log('📊 Final chart data:', { labels: labels.slice(0, 5), data: data.slice(0, 5), finalTotal: runningTotal });
+                return { labels, data, finalTotal: runningTotal };
+            }
+
+            renderAll() {
+                console.log('🎨 Rendering complete dashboard...');
+                
+                // Initialize charts first
+                this.initCharts();
+                
+                // Render everything with a small delay to ensure DOM is ready
+                setTimeout(() => {
+                    this.renderGraph();
+                    this.renderCalendar(); 
+                    this.renderTotals();
+                    this.renderPriorities();
+                    console.log('✅ Dashboard rendered completely');
+                }, 100);
+            }
+
+            initCharts() {
+                // Initialize capital chart
+                if (!window.capitalChartInstance) {
+                    const ctx = document.getElementById('capitalChart');
+                    if (ctx) {
+                        window.capitalChartInstance = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: [],
+                                datasets: [{
+                                    label: 'Capital',
+                                    data: [],
+                                    borderColor: '#3b82f6',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                    tension: 0.4,
+                                    fill: true
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: false,
+                                        grid: { color: '#374151' },
+                                        ticks: { color: '#9ca3af' }
+                                    },
+                                    x: {
+                                        grid: { color: '#374151' },
+                                        ticks: { color: '#9ca3af' }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+
+            renderGraph() {
+                if (!window.capitalChartInstance) return;
+                
+                const chartData = this.chartData;
+                window.capitalChartInstance.data.labels = chartData.labels;
+                window.capitalChartInstance.data.datasets[0].data = chartData.data;
+                window.capitalChartInstance.update();
+                
+                // Update current capital display
+                const capitalElement = document.getElementById('capital-value');
+                if (capitalElement) {
+                    capitalElement.textContent = '$' + chartData.finalTotal.toLocaleString();
+                }
+                
+                console.log('📊 Graph rendered with total:', chartData.finalTotal);
+            }
+
+            renderCalendar() {
+                console.log('📅 Rendering calendar with processed data...');
+                
+                // Get the calendar element (it's actually calendar-grid, not calendar)
+                const calendarElement = document.getElementById('calendar-grid');
+                if (!calendarElement) {
+                    console.log('⚠️ Calendar grid element not found, retrying in 200ms...');
+                    setTimeout(() => this.renderCalendar(), 200);
+                    return;
+                }
+                
+                // Use the existing renderCalendar function but ensure it has access to the data
+                if (typeof window.renderCalendar === 'function') {
+                    // Temporarily set the data in the global scope for the existing function
+                    window.currentPNLData = this.data;
+                    console.log('📅 Data set for calendar:', Object.keys(this.data).length, 'days');
+                    window.renderCalendar();
+                    console.log('📅 Calendar rendered using existing function with data');
+                } else {
+                    console.log('⚠️ renderCalendar function not found');
+                }
+            }
+
+            renderPriorities() {
+                // Use existing renderPriorities function
+                if (typeof window.renderPriorities === 'function') {
+                    window.renderPriorities();
+                    console.log('⭐ Priorities rendered using existing function');
+                } else {
+                    console.log('⚠️ renderPriorities function not found');
+                }
+            }
+
+            renderTotals() {
+                // Render all totals
+                console.log('💰 Totals rendered:', this.totals);
+            }
+
+            removeLoadingBarrier() {
+                const barrier = document.getElementById('loading-barrier');
+                if (barrier) {
+                    barrier.style.display = 'none';
+                    console.log('✅ Loading barrier removed');
+                }
+            }
+
+            // Legacy compatibility methods
             async getDay(year, month, day) {
-                const data = await this.loadData();
                 const key = `${year}-${month + 1}-${day}`;
-                return data[key] || { 
+                return this.data[key] || { 
                     pnl: 0, 
                     trades: 0, 
                     notes: '', 
-                    priorities: [], // Day-specific priorities
+                    priorities: [],
                     individualTrades: [],
                     morningIntentions: '',
                     focusAreas: '',
@@ -1432,24 +1635,53 @@
                     winRate: 0,
                     largestWin: 0
                 };
-            },
+            }
             
-            // Set data for specific date
             async setDay(year, month, day, dayData) {
-                const data = await this.loadData();
                 const key = `${year}-${month + 1}-${day}`;
-                data[key] = dayData;
-                return await this.saveData(data);
+                this.data[key] = dayData;
+                return await this.saveData();
+            }
+
+            async saveData() {
+                try {
+                    const response = await fetch('/api/data', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(this.data)
+                    });
+                    
+                    if (response.ok) {
+                        console.log('✅ Data saved to server');
+                    }
+                    
+                    localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+                    return true;
+                } catch (error) {
+                    console.error('❌ Save failed:', error);
+                    localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+                    return false;
+                }
+            }
+        }
+
+        // GLOBAL instance - only one data manager exists
+        window.pnlManager = new PNLDataManager();
+        
+        // Make PNLManager compatible with existing code
+        window.PNLManager = {
+            async getDay(year, month, day) {
+                return await window.pnlManager.getDay(year, month, day);
             },
-            
-            // Priorities management
-            loadPriorities() {
-                const saved = localStorage.getItem(this.prioritiesKey);
-                return saved ? JSON.parse(saved) : [];
+            async setDay(year, month, day, dayData) {
+                return await window.pnlManager.setDay(year, month, day, dayData);
             },
-            
-            savePriorities(priorities) {
-                localStorage.setItem(this.prioritiesKey, JSON.stringify(priorities));
+            async loadData() {
+                return window.pnlManager.data || {};
+            },
+            async saveData(data) {
+                window.pnlManager.data = data;
+                return await window.pnlManager.saveData();
             }
         };
 
@@ -1462,17 +1694,25 @@
             renderCalendar();
         }
         
-        function renderCalendar() {
+        // Make functions globally accessible
+        window.renderCalendar = function() {
             const firstDay = new Date(currentYear, currentMonth, 1);
             const lastDay = new Date(currentYear, currentMonth + 1, 0);
             const daysInMonth = lastDay.getDate();
             const firstDayOfWeek = firstDay.getDay();
+            
+            console.log('📅 renderCalendar called with data:', window.currentPNLData ? 'available' : 'not available');
             
             const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
                                'July', 'August', 'September', 'October', 'November', 'December'];
             document.getElementById('current-month').textContent = `${monthNames[currentMonth]} ${currentYear}`;
             
             const calendarGrid = document.getElementById('calendar-grid');
+            if (!calendarGrid) {
+                console.error('❌ Calendar grid element not found!');
+                return;
+            }
+            console.log('📅 Calendar grid found, clearing content...');
             calendarGrid.innerHTML = '';
             
             // Calculate monthly stats - only count days with actual trades
@@ -1497,8 +1737,18 @@
             const today = new Date();
             const isCurrentMonth = currentYear === today.getFullYear() && currentMonth === today.getMonth();
             
+            console.log(`📅 Creating calendar for ${daysInMonth} days in month ${currentMonth + 1}/${currentYear}`);
+            
             for (let day = 1; day <= daysInMonth; day++) {
-                const dayData = PNLManager.getDay(currentYear, currentMonth, day);
+                // Use data from PNLDataManager if available, otherwise fall back to PNLManager
+                let dayData;
+                if (window.currentPNLData) {
+                    const key = `${currentYear}-${currentMonth + 1}-${day}`;
+                    dayData = window.currentPNLData[key] || { pnl: 0, trades: 0 };
+                    console.log(`Day ${day}: Using PNLDataManager data - PNL: ${dayData.pnl}`);
+                } else {
+                    dayData = PNLManager.getDay(currentYear, currentMonth, day);
+                }
                 const pnl = dayData.pnl || 0;
                 const trades = dayData.trades || 0;
                 const isToday = isCurrentMonth && day === today.getDate();
@@ -1526,6 +1776,7 @@
                 }
                 
                 const dayCell = document.createElement('div');
+                console.log(`📅 Creating day cell ${day}: PNL=${pnl}, Trades=${trades}`);
                 
                 // Style based on PNL and today
                 let bgColor = 'bg-gray-800';
@@ -1657,8 +1908,32 @@
 
         function openDayModal(day) {
             selectedDay = day;
-            const dayData = PNLManager.getDay(currentYear, currentMonth, day);
-            console.log('=== Opening Day Modal ===');
+            
+            // Use data from PNLDataManager if available, otherwise fall back to PNLManager
+            let dayData;
+            if (window.currentPNLData) {
+                const key = `${currentYear}-${currentMonth + 1}-${day}`;
+                dayData = window.currentPNLData[key] || { 
+                    pnl: 0, 
+                    trades: 0, 
+                    notes: '', 
+                    priorities: [],
+                    individualTrades: [],
+                    morningIntentions: '',
+                    focusAreas: '',
+                    eveningReflection: '',
+                    learned: '',
+                    patterns: '',
+                    improvements: '',
+                    winRate: 0,
+                    largestWin: 0
+                };
+                console.log('=== Opening Day Modal (PNLDataManager) ===');
+            } else {
+                dayData = PNLManager.getDay(currentYear, currentMonth, day);
+                console.log('=== Opening Day Modal (PNLManager) ===');
+            }
+            
             console.log('Date:', currentYear, currentMonth + 1, day);
             console.log('Storage Key:', `${currentYear}-${currentMonth + 1}-${day}`);
             console.log('Day Data:', JSON.stringify(dayData, null, 2));
@@ -1937,8 +2212,28 @@
 
         function saveDayData() {
             try {
-                // Get the current day's priorities and update their completion status
-                const dayData = PNLManager.getDay(currentYear, currentMonth, selectedDay);
+                // Get the current day's data from PNLDataManager if available
+                let dayData;
+                if (window.currentPNLData) {
+                    const key = `${currentYear}-${currentMonth + 1}-${selectedDay}`;
+                    dayData = window.currentPNLData[key] || { 
+                        pnl: 0, 
+                        trades: 0, 
+                        notes: '', 
+                        priorities: [],
+                        individualTrades: [],
+                        morningIntentions: '',
+                        focusAreas: '',
+                        eveningReflection: '',
+                        learned: '',
+                        patterns: '',
+                        improvements: '',
+                        winRate: 0,
+                        largestWin: 0
+                    };
+                } else {
+                    dayData = PNLManager.getDay(currentYear, currentMonth, selectedDay);
+                }
                 const currentPriorities = dayData.priorities || [];
                 
                 // Update completion status based on checkboxes
@@ -1950,33 +2245,44 @@
                         priority.completed = checkbox.checked;
                     }
                 });
-                
-                console.log('=== Saving Day Data ===');
-                console.log('Date:', currentYear, currentMonth + 1, selectedDay);
+            
+            console.log('=== Saving Day Data ===');
+            console.log('Date:', currentYear, currentMonth + 1, selectedDay);
                 console.log('Updated priorities:', currentPriorities);
-                
-                // Collect all data from the comprehensive form
+            
+            // Collect all data from the comprehensive form
                 const updatedDayData = {
-                    pnl: parseFloat(document.getElementById('modal-pnl').value) || 0,
-                    trades: parseInt(document.getElementById('modal-trades').value) || 0,
-                    winRate: parseFloat(document.getElementById('modal-winrate').value) || 0,
-                    largestWin: parseFloat(document.getElementById('modal-largestwin').value) || 0,
-                    morningIntentions: document.getElementById('modal-morning').value || '',
-                    focusAreas: document.getElementById('modal-focus').value || '',
-                    eveningReflection: document.getElementById('modal-evening').value || '',
-                    learned: document.getElementById('modal-learned').value || '',
-                    patterns: document.getElementById('modal-patterns').value || '',
-                    improvements: document.getElementById('modal-improvements').value || '',
-                    individualTrades: currentTrades,
+                pnl: parseFloat(document.getElementById('modal-pnl').value) || 0,
+                trades: parseInt(document.getElementById('modal-trades').value) || 0,
+                winRate: parseFloat(document.getElementById('modal-winrate').value) || 0,
+                largestWin: parseFloat(document.getElementById('modal-largestwin').value) || 0,
+                morningIntentions: document.getElementById('modal-morning').value || '',
+                focusAreas: document.getElementById('modal-focus').value || '',
+                eveningReflection: document.getElementById('modal-evening').value || '',
+                learned: document.getElementById('modal-learned').value || '',
+                patterns: document.getElementById('modal-patterns').value || '',
+                improvements: document.getElementById('modal-improvements').value || '',
+                individualTrades: currentTrades,
                     priorities: currentPriorities
-                };
-                
+            };
+            
                 console.log('Full day data being saved:', updatedDayData);
                 
-                PNLManager.setDay(currentYear, currentMonth, selectedDay, updatedDayData);
-                renderCalendar();
-                closeDayModal();
-                alert('Day data saved successfully!');
+                // Save to PNLDataManager if available, otherwise fall back to PNLManager
+                if (window.currentPNLData && window.pnlManager) {
+                    const key = `${currentYear}-${currentMonth + 1}-${selectedDay}`;
+                    window.currentPNLData[key] = updatedDayData;
+                    window.pnlManager.data = window.currentPNLData;
+                    window.pnlManager.saveData();
+                    console.log('✅ Saved to PNLDataManager');
+                } else {
+                    PNLManager.setDay(currentYear, currentMonth, selectedDay, updatedDayData);
+                    console.log('✅ Saved to PNLManager');
+                }
+                
+            renderCalendar();
+            closeDayModal();
+            alert('Day data saved successfully!');
             } catch (error) {
                 console.error('Error saving day data:', error);
                 alert('Error saving data: ' + error.message);

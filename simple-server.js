@@ -10,19 +10,22 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('.')); // Serve all static files
 
-// API endpoint to get data
+// API endpoint to get data - FAST and RELIABLE
 app.get('/api/data', (req, res) => {
     try {
+        // Read file synchronously - no async delays
         const dataPath = path.join(__dirname, 'data.json');
         if (fs.existsSync(dataPath)) {
-            const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
-            res.json(data);
+            const data = fs.readFileSync(dataPath, 'utf8');
+            console.log('📊 SERVER: Sending data immediately');
+            res.json(JSON.parse(data));
         } else {
+            console.log('📊 SERVER: No data file, sending empty structure');
             res.json(initializeEmptyData());
         }
     } catch (error) {
-        console.error('Error loading data:', error);
-        res.status(500).json({ error: 'Failed to load data' });
+        console.error('SERVER ERROR:', error);
+        res.json({}); // Never fail, always return valid JSON
     }
 });
 
@@ -49,6 +52,50 @@ app.post('/api/data', (req, res) => {
         res.status(500).json({ error: 'Failed to save data' });
     }
 });
+
+// API endpoint to save backup
+app.post('/api/save-backup', (req, res) => {
+    try {
+        const backupPath = path.join(__dirname, 'localStorage-backup.json');
+        fs.writeFileSync(backupPath, JSON.stringify(req.body, null, 2));
+        console.log('✅ Complete data saved as backup');
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error saving backup:', error);
+        res.status(500).json({ error: 'Failed to save backup' });
+    }
+});
+
+// Diagnostic endpoint
+app.get('/api/debug', (req, res) => {
+    try {
+        const backupPath = path.join(__dirname, 'localStorage-backup.json');
+        const dataPath = path.join(__dirname, 'data.json');
+        
+        const backupData = fs.existsSync(backupPath) ? 
+            JSON.parse(fs.readFileSync(backupPath, 'utf8')) : null;
+        const mainData = fs.existsSync(dataPath) ? 
+            JSON.parse(fs.readFileSync(dataPath, 'utf8')) : null;
+            
+        res.json({
+            backupDataExists: !!backupData,
+            backupDataKeys: backupData ? Object.keys(backupData) : [],
+            backupTotal: backupData ? calculateTotalPNL(backupData) : 0,
+            mainDataExists: !!mainData,
+            mainDataKeys: mainData ? Object.keys(mainData) : [],
+            mainTotal: mainData ? calculateTotalPNL(mainData) : 0,
+            message: "Debug information"
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+function calculateTotalPNL(data) {
+    return Object.values(data).reduce((total, dayData) => {
+        return total + (dayData.pnl || 0);
+    }, 0);
+}
 
 function initializeEmptyData() {
     return {

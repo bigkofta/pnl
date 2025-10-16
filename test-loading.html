@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Data Loading</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-red-400">🐛 Debug Data Loading</h1>
+        
+        <div class="space-y-6">
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4">Test PNLManager</h2>
+                <button onclick="testPNLManager()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded mb-4">
+                    Test PNLManager
+                </button>
+                <div id="test-output" class="bg-gray-900 p-4 rounded text-sm overflow-auto max-h-96"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Copy the exact PNLManager from the main dashboard
+        const PNLManager = {
+            storageKey: 'stevesystem_pnl_data',
+            
+            async loadData() {
+                try {
+                    console.log('Trying to load from server endpoint...');
+                    const response = await fetch('/api/data');
+                    console.log('Response status:', response.status);
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('Data loaded from server:', data);
+                        localStorage.setItem(this.storageKey, JSON.stringify(data));
+                        return data;
+                    }
+                } catch (error) {
+                    console.log('Server loading failed:', error);
+                }
+                
+                console.log('Falling back to localStorage...');
+                const savedData = localStorage.getItem(this.storageKey);
+                if (savedData) {
+                    return JSON.parse(savedData);
+                }
+                
+                return {};
+            },
+            
+            async getDay(year, month, day) {
+                console.log('Getting day data for:', year, month, day);
+                const data = await this.loadData();
+                const key = `${year}-${month + 1}-${day}`;
+                console.log('Looking for key:', key);
+                console.log('Available keys:', Object.keys(data));
+                const dayData = data[key] || { pnl: 0, trades: 0, priorities: [] };
+                console.log('Day data found:', dayData);
+                return dayData;
+            }
+        };
+        
+        async function testPNLManager() {
+            const output = document.getElementById('test-output');
+            output.innerHTML = 'Testing PNLManager...<br>';
+            
+            try {
+                // Test loading all data
+                output.innerHTML += 'Loading all data...<br>';
+                const allData = await PNLManager.loadData();
+                output.innerHTML += 'All data: ' + JSON.stringify(allData, null, 2) + '<br><br>';
+                
+                // Test loading today's data
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = today.getMonth();
+                const day = today.getDate();
+                
+                output.innerHTML += `Testing today's data (${year}-${month + 1}-${day})...<br>`;
+                const todayData = await PNLManager.getDay(year, month, day);
+                output.innerHTML += 'Today data: ' + JSON.stringify(todayData, null, 2) + '<br><br>';
+                
+                // Test loading yesterday's data
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yYear = yesterday.getFullYear();
+                const yMonth = yesterday.getMonth();
+                const yDay = yesterday.getDate();
+                
+                output.innerHTML += `Testing yesterday's data (${yYear}-${yMonth + 1}-${yDay})...<br>`;
+                const yesterdayData = await PNLManager.getDay(yYear, yMonth, yDay);
+                output.innerHTML += 'Yesterday data: ' + JSON.stringify(yesterdayData, null, 2) + '<br>';
+                
+            } catch (error) {
+                output.innerHTML += 'Error: ' + error.message + '<br>';
+                console.error('Test error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

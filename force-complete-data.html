@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Force Complete Data Sync</title>
+</head>
+<body>
+    <h1>Force Complete Data Sync</h1>
+    <div id="status">Loading...</div>
+    
+    <script>
+        async function forceSyncCompleteData() {
+            const status = document.getElementById('status');
+            
+            try {
+                // Get complete data from localStorage
+                const completeData = localStorage.getItem('stevesystem_pnl_data');
+                if (!completeData) {
+                    status.innerHTML = '❌ No localStorage data found';
+                    return;
+                }
+                
+                const data = JSON.parse(completeData);
+                console.log('📊 Complete localStorage data:', {
+                    keys: Object.keys(data),
+                    totalDays: Object.keys(data).length,
+                    sampleData: Object.entries(data).slice(0, 5)
+                });
+                
+                // Calculate total PNL
+                const totalPNL = Object.values(data).reduce((sum, day) => sum + (day.pnl || 0), 0);
+                console.log('💰 Total PNL from localStorage:', totalPNL);
+                
+                status.innerHTML = `📊 Found ${Object.keys(data).length} days of data<br>💰 Total PNL: $${totalPNL.toLocaleString()}<br>🔄 Syncing to server...`;
+                
+                // Send to server
+                const response = await fetch('/api/data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    status.innerHTML = `✅ SUCCESS! Complete data synced to server<br>📊 ${Object.keys(data).length} days<br>💰 Total PNL: $${totalPNL.toLocaleString()}<br><br><a href="/">← Back to Dashboard</a>`;
+                } else {
+                    status.innerHTML = '❌ Failed to sync to server';
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                status.innerHTML = '❌ Error: ' + error.message;
+            }
+        }
+        
+        // Run immediately
+        forceSyncCompleteData();
+    </script>
+</body>
+</html>

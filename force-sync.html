@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Force Sync Complete Data</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-red-400">🚨 FORCE SYNC COMPLETE DATA</h1>
+        
+        <div class="space-y-6">
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 text-yellow-400">📊 Current localStorage Data</h2>
+                <button onclick="showLocalStorage()" class="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded mb-4">
+                    Show localStorage Data
+                </button>
+                <div id="localStorage-data" class="bg-gray-900 p-4 rounded text-sm overflow-auto max-h-96 hidden"></div>
+            </div>
+            
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 text-blue-400">🔄 Force Sync to Server</h2>
+                <p class="text-gray-300 mb-4">This will overwrite the server data with your complete localStorage data.</p>
+                <button onclick="forceSync()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded">
+                    FORCE SYNC COMPLETE DATA
+                </button>
+                <div id="sync-status" class="mt-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showLocalStorage() {
+            try {
+                const pnlData = localStorage.getItem('stevesystem_pnl_data');
+                
+                if (pnlData) {
+                    const data = JSON.parse(pnlData);
+                    const preview = document.getElementById('localStorage-data');
+                    preview.textContent = JSON.stringify(data, null, 2);
+                    preview.classList.remove('hidden');
+                } else {
+                    document.getElementById('localStorage-data').textContent = 'No data found in localStorage';
+                }
+            } catch (error) {
+                document.getElementById('localStorage-data').textContent = 'Error loading data: ' + error.message;
+            }
+        }
+        
+        async function forceSync() {
+            try {
+                const pnlData = localStorage.getItem('stevesystem_pnl_data');
+                
+                if (!pnlData) {
+                    document.getElementById('sync-status').innerHTML = '<p class="text-yellow-400">⚠️ No data found in localStorage</p>';
+                    return;
+                }
+                
+                const data = JSON.parse(pnlData);
+                console.log('Force syncing data:', data);
+                
+                // Send complete data to server
+                const response = await fetch('/api/data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    document.getElementById('sync-status').innerHTML = '<p class="text-green-400">✅ COMPLETE DATA FORCE SYNCED! Refresh the dashboard to see your real data.</p>';
+                } else {
+                    throw new Error('Failed to sync data');
+                }
+            } catch (error) {
+                document.getElementById('sync-status').innerHTML = '<p class="text-red-400">❌ Force sync failed: ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>

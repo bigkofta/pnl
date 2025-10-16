@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merge Data - SteveSystem</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-green-400">🔄 Merge Complete Data</h1>
+        
+        <div class="space-y-6">
+            <!-- Merge Data -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 text-blue-400">📊 Merge localStorage with Server Data</h2>
+                <p class="text-gray-300 mb-4">This will take your complete localStorage data and merge it with any server data.</p>
+                <button onclick="mergeData()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">
+                    Merge Complete Data
+                </button>
+                <div id="merge-status" class="mt-4"></div>
+            </div>
+            
+            <!-- Show Current Data -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 text-yellow-400">📋 Current localStorage Data</h2>
+                <button onclick="showCurrentData()" class="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded mb-4">
+                    Show localStorage Data
+                </button>
+                <div id="data-preview" class="bg-gray-900 p-4 rounded text-sm overflow-auto max-h-96 hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function mergeData() {
+            try {
+                // Get localStorage data
+                const pnlData = localStorage.getItem('stevesystem_pnl_data');
+                
+                if (!pnlData) {
+                    document.getElementById('merge-status').innerHTML = '<p class="text-yellow-400">⚠️ No data found in localStorage</p>';
+                    return;
+                }
+                
+                const localStorageData = JSON.parse(pnlData);
+                console.log('localStorage data:', localStorageData);
+                
+                // Get server data
+                let serverData = {};
+                try {
+                    const response = await fetch('/api/data');
+                    if (response.ok) {
+                        serverData = await response.json();
+                        console.log('Server data:', serverData);
+                    }
+                } catch (error) {
+                    console.log('Could not fetch server data:', error);
+                }
+                
+                // Merge data (localStorage takes priority)
+                const mergedData = {
+                    ...serverData,
+                    ...localStorageData,
+                    last_updated: new Date().toISOString(),
+                    merged_from: 'localStorage + server'
+                };
+                
+                console.log('Merged data:', mergedData);
+                
+                // Save merged data to server
+                const response = await fetch('/api/data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(mergedData)
+                });
+                
+                if (response.ok) {
+                    document.getElementById('merge-status').innerHTML = '<p class="text-green-400">✅ Complete data merged and saved to server! Refresh the dashboard to see all your data.</p>';
+                } else {
+                    throw new Error('Failed to save merged data');
+                }
+            } catch (error) {
+                document.getElementById('merge-status').innerHTML = '<p class="text-red-400">❌ Merge failed: ' + error.message + '</p>';
+            }
+        }
+        
+        function showCurrentData() {
+            try {
+                const pnlData = localStorage.getItem('stevesystem_pnl_data');
+                
+                if (pnlData) {
+                    const data = JSON.parse(pnlData);
+                    const preview = document.getElementById('data-preview');
+                    preview.textContent = JSON.stringify(data, null, 2);
+                    preview.classList.remove('hidden');
+                } else {
+                    document.getElementById('data-preview').textContent = 'No data found in localStorage';
+                }
+            } catch (error) {
+                document.getElementById('data-preview').textContent = 'Error loading data: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
