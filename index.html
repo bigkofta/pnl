@@ -760,10 +760,10 @@
                     }
                 }
             });
-            updateCapitalChart();
+            await updateCapitalChart();
         }
 
-        function updateCapitalChart() {
+        async function updateCapitalChart() {
             if (!capitalChartInstance) return;
             
             // Get all days in the current month to match monthly calendar
@@ -777,7 +777,7 @@
             
             // Show all days in the month
             for (let day = 1; day <= daysInMonth; day++) {
-                const dayData = PNLManager.getDay(currentYear, currentMonth, day);
+                const dayData = await PNLManager.getDay(currentYear, currentMonth, day);
                 const date = new Date(currentYear, currentMonth, day);
                 const dayOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
                 const monthDay = `${date.getMonth() + 1}/${date.getDate()}`;
@@ -853,16 +853,16 @@
             }
         }
 
-        function prevDay() {
+        async function prevDay() {
             const newDate = new Date(currentViewDate);
             newDate.setDate(newDate.getDate() - 1);
             currentViewDate = newDate;
             console.log('Previous capital day:', currentViewDate.toDateString());
             updateDayDisplay();
-            updateCapitalChart();
+            await updateCapitalChart();
         }
 
-        function nextDay() {
+        async function nextDay() {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             
@@ -879,18 +879,18 @@
                 currentViewDate = newDate;
                 console.log('✓ Advanced to:', currentViewDate.toDateString());
                 updateDayDisplay();
-                updateCapitalChart();
+                await updateCapitalChart();
             } else {
                 console.log('✗ Already viewing today - button should be disabled');
             }
         }
 
-        function jumpToToday() {
+        async function jumpToToday() {
             currentViewDate = new Date();
             currentViewDate.setHours(0, 0, 0, 0);
             console.log('Jump to today:', currentViewDate.toDateString());
             updateDayDisplay();
-            updateCapitalChart();
+            await updateCapitalChart();
         }
 
         function editCurrentDay() {
@@ -1612,26 +1612,26 @@
             }
         }
 
-        function prevMonth() {
+        async function prevMonth() {
             currentMonth--;
             if (currentMonth < 0) {
                 currentMonth = 11;
                 currentYear--;
             }
             renderCalendar();
-            updateCapitalChart(); // Update graph when month changes
+            await updateCapitalChart(); // Update graph when month changes
             // Sync priorities to first day of new month view
             syncPriorityToCalendar();
         }
 
-        function nextMonth() {
+        async function nextMonth() {
             currentMonth++;
             if (currentMonth > 11) {
                 currentMonth = 0;
                 currentYear++;
             }
             renderCalendar();
-            updateCapitalChart(); // Update graph when month changes
+            await updateCapitalChart(); // Update graph when month changes
             // Sync priorities to first day of new month view
             syncPriorityToCalendar();
         }
