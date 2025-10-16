@@ -1356,56 +1356,58 @@
             console.log('Toggle priority:', priorityId);
         }
 
-        // PNL Data Management - localStorage with server sync
+        // PNL Data Management - Server-compatible approach
         const PNLManager = {
             storageKey: 'stevesystem_pnl_data',
-            dataFile: 'data.json',
             
-            // Load PNL data - try server first, then localStorage
+            // Load PNL data - try server endpoint first, then localStorage
             async loadData() {
                 try {
-                    // Try to load from server file first
-                    const response = await fetch(this.dataFile);
+                    // Try to load from server endpoint first
+                    const response = await fetch('/api/data');
                     if (response.ok) {
-                        const fileData = await response.json();
-                        if (fileData.pnl_data && Object.keys(fileData.pnl_data).length > 0) {
-                            console.log('Data loaded from server file');
-                            // Also sync to localStorage
-                            localStorage.setItem(this.storageKey, JSON.stringify(fileData.pnl_data));
-                            return fileData.pnl_data;
-                        }
+                        const data = await response.json();
+                        console.log('Data loaded from server');
+                        // Also sync to localStorage as backup
+                        localStorage.setItem(this.storageKey, JSON.stringify(data));
+                        return data;
                     }
                 } catch (error) {
-                    console.log('Server file not available, using localStorage');
+                    console.log('Server loading failed, trying localStorage fallback...');
                 }
                 
                 // Fallback to localStorage
-                const saved = localStorage.getItem(this.storageKey);
-                return saved ? JSON.parse(saved) : {};
+                const savedData = localStorage.getItem(this.storageKey);
+                if (savedData) {
+                    return JSON.parse(savedData);
+                }
+                
+                // Final fallback - return empty structure
+                return {};
             },
             
-            // Save PNL data - save to both localStorage and server
+            // Save PNL data - save to both server and localStorage
             async saveData(data) {
-                // Always save to localStorage first
-                localStorage.setItem(this.storageKey, JSON.stringify(data));
-                
-                // Try to save to server file
                 try {
-                    const response = await fetch('/api/save-data', {
+                    // Save to server
+                    const response = await fetch('/api/data', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            pnl_data: data,
-                            priorities: [],
-                            last_updated: new Date().toISOString()
-                        })
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
                     });
                     
                     if (response.ok) {
-                        console.log('Data synced to server');
+                        console.log('Data saved to server');
                     }
+                    
+                    // Also save to localStorage as backup
+                    localStorage.setItem(this.storageKey, JSON.stringify(data));
+                    
                 } catch (error) {
-                    console.log('Server sync failed, data saved locally');
+                    console.error('Server save failed, using localStorage only');
+                    localStorage.setItem(this.storageKey, JSON.stringify(data));
                 }
                 
                 return true;
