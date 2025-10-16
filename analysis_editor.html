@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Analysis Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            font-family: 'Inter', sans-serif;
+        }
+        .card {
+            background-color: #2c2c2c;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 24px;
+        }
+        .card-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #a0a0a0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+        }
+        .card-title i {
+            margin-right: 8px;
+            color: #63b3ed;
+        }
+        .input-field, .textarea-field {
+            background-color: #383838;
+            border: 1px solid #555;
+            border-radius: 4px;
+            padding: 10px;
+            width: 100%;
+            color: #e0e0e0;
+        }
+        .btn {
+            background-color: #4a5568;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn.active {
+            background-color: #63b3ed;
+        }
+        .btn-primary {
+            background-color: #63b3ed;
+            padding: 12px;
+            font-weight: bold;
+        }
+        .btn-primary:hover {
+            background-color: #5a9bd8;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body class="p-8">
+
+    <div class="grid-container">
+
+        <!-- NARRATIVE CORE -->
+        <div class="card col-span-2">
+            <h2 class="card-title"><i class="fas fa-book"></i>Narrative Core</h2>
+            <div class="mt-4">
+                <label class="block text-sm font-medium mb-1">Event / Match</label>
+                <div class="flex gap-2">
+                    <input type="text" id="event-input" placeholder="Search for matches..." class="input-field flex-1">
+                    <button onclick="searchNews()" class="btn btn-primary px-3">
+                        <i class="fas fa-newspaper"></i> News
+                    </button>
+                    <button onclick="searchImages()" class="btn btn-primary px-3">
+                        <i class="fas fa-images"></i> Images
+                    </button>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mt-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Dominant Story</label>
+                    <textarea placeholder="What does the market believe will happen?" class="textarea-field h-24"></textarea>
+                    </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Contrarian Angle</label>
+                    <textarea placeholder="Where could this break?" class="textarea-field h-24"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- PRE-BET COMMITMENT -->
+        <div class="card col-span-2">
+            <h2 class="card-title"><i class="fas fa-pen"></i>Pre-Bet Commitment</h2>
+            <div class="mt-4">
+                <p class="text-sm text-gray-400 mb-3">Before placing, force yourself to write: "I'm betting [X] because [specific psychological read], expecting it to manifest as [specific behavior] at [specific game moments]" - This prevents post-hoc rationalization</p>
+                <textarea placeholder="I'm betting _____ because..." class="textarea-field h-20 w-full"></textarea>
+            </div>
+        </div>
+
+        <!-- PRESSURE SCANNER -->
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-compress-arrows-alt"></i>Pressure Scanner</h2>
+            <div class="mt-4">
+                <label class="block text-sm font-medium mb-1">Structural Pressure Points</label>
+                <textarea placeholder="Injuries, lineup changes, false humility, coaching errors..." class="textarea-field h-20"></textarea>
+                            </div>
+            <div class="mt-4">
+                <label class="block text-sm font-medium mb-1">Market Pricing</label>
+                <div class="flex space-x-2">
+                    <button class="btn">Justified</button>
+                    <button class="btn active">Overreaction</button>
+                    <button class="btn">Delayed</button>
+                    <button class="btn">Ignoring</button>
+                            </div>
+                        </div>
+                            </div>
+
+        <!-- LIVE BREATH TRACKER -->
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-lungs"></i>Live Breath Tracker</h2>
+            <div class="mt-4 flex items-center">
+                <div class="w-4 h-4 rounded-full bg-gray-400 mr-2"></div>
+                <span>Breath Status: Neutral</span>
+                        </div>
+            <div class="mt-4">
+                <label class="block text-sm font-medium mb-1">Breath Direction</label>
+                <div class="flex space-x-2">
+                    <button class="btn">Expanding</button>
+                    <button class="btn">Contracting</button>
+                    <button class="btn active">Neutral</button>
+                            </div>
+                        </div>
+            <div class="mt-4">
+                <label class="block text-sm font-medium mb-1">Emotional Tempo</label>
+                <div class="flex space-x-2">
+                    <button class="btn">Calm</button>
+                    <button class="btn">Tight</button>
+                    <button class="btn">Sloppy</button>
+                    <button class="btn">Disengaged</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- YOUR EMOTIONAL POSITION -->
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-user-circle"></i>Your Emotional Position</h2>
+            <div class="mt-4">
+                <label class="block text-sm font-medium mb-1">Internal State Check</label>
+                <div class="flex space-x-2">
+                    <button class="btn">Present & Responsive</button>
+                    <button class="btn">Drifting</button>
+                    <button class="btn active">Over-attached</button>
+                    <button class="btn">Avoiding</button>
+                </div>
+            </div>
+            <button class="w-full mt-6 btn btn-primary">ALIGNMENT CHECK <i class="fas fa-check"></i></button>
+                    </div>
+
+        <!-- TRADE EXPRESSION MAPPER -->
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-chart-pie"></i>Trade Expression Mapper</h2>
+            <div class="mt-4">
+                <label class="block text-sm font-medium mb-1">Sport Category</label>
+                <div class="grid grid-cols-5 gap-2">
+                    <button class="btn">Tennis</button>
+                    <button class="btn">Soccer</button>
+                    <button class="btn">Fighting</button>
+                    <button class="btn">Racing</button>
+                    <button class="btn">Esports</button>
+                </div>
+            </div>
+            <div class="mt-4">
+                <label class="block text-sm font-medium mb-1">Rationale</label>
+                <textarea placeholder="Why this expression matches the narrative tension..." class="textarea-field h-20"></textarea>
+                </div>
+            </div>
+
+        <!-- HUMAN INTELLIGENCE -->
+        <div class="card col-span-2">
+            <h2 class="card-title"><i class="fas fa-brain"></i>Human Intelligence</h2>
+            <div class="grid grid-cols-2 gap-x-8 gap-y-4 mt-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Previous Results (Energy & Emotion)</label>
+                    <textarea placeholder="How did they really play? What was the emotional aftermath? Body language? Post-match interviews?" class="textarea-field h-24"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Social Media & Fan Sentiment</label>
+                    <textarea placeholder="What's the mood? Protests? Support? Fan expectations? Social media..." class="textarea-field h-24"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Coach & Management</label>
+                    <textarea placeholder="Pressure on coach? Recent statements? Tactical changes? Board..." class="textarea-field h-24"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Interview Body Language & Quotes</label>
+                    <textarea placeholder="What did they really say? Tone? Confidence? Deflection? Hidden..." class="textarea-field h-24"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Personal & Family Situations</label>
+                    <textarea placeholder="Player family issues? Contract negotiations? Personal milestones?" class="textarea-field h-24"></textarea>
+                    </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Everything Else (The Intangibles)</label>
+                    <textarea placeholder="Weather psychology? Travel fatigue? Historical dates? Referee..." class="textarea-field h-24"></textarea>
+                </div>
+                 <div>
+                    <label class="block text-sm font-medium mb-1">Injury Psychology & Impact</label>
+                    <textarea placeholder="Who's out and how does it affect team soul? Replacement pressure?" class="textarea-field h-24"></textarea>
+                    </div>
+                </div>
+            </div>
+
+        <!-- PERSPECTIVE LENSES -->
+        <div class="card col-span-2">
+            <h2 class="card-title"><i class="fas fa-glasses"></i>Perspective Lenses</h2>
+            <div class="grid grid-cols-2 gap-x-8 gap-y-4 mt-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1"><i class="fas fa-child text-yellow-400"></i> Explain to a 5-Year-Old</label>
+                    <textarea placeholder="Simple story: Who wants to win more? Why?" class="textarea-field h-24"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1"><i class="fas fa-user-secret text-red-400"></i> Skincrawler (Super Inside Mind)</label>
+                    <textarea placeholder="What's really going on beneath the surface?" class="textarea-field h-24"></textarea>
+                    </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1"><i class="fas fa-question-circle"></i> Know Intuitively Something</label>
+                    <textarea placeholder="What does your gut tell you without analysis?" class="textarea-field h-24"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1"><i class="fas fa-users"></i> Public Gamble</label>
+                    <textarea placeholder="How would casual fans see this bet?" class="textarea-field h-24"></textarea>
+                    </div>
+                </div>
+            </div>
+
+        <!-- EV & META ANALYSIS -->
+        <div class="card col-span-2">
+            <h2 class="card-title"><i class="fas fa-chart-line"></i>EV & Meta Analysis</h2>
+            <div class="mt-4">
+                <label class="block text-sm font-medium mb-1">Expected Value Assessment</label>
+                <div class="flex space-x-2">
+                    <button class="btn">Positive EV</button>
+                    <button class="btn">Neutral EV</button>
+                    <button class="btn">Negative EV</button>
+                    <button class="btn">Unknown</button>
+                    </div>
+                    </div>
+            <div class="mt-4">
+                <label class="block text-sm font-medium mb-1">Read Quality Check</label>
+                 <div class="flex space-x-2">
+                    <button class="btn">Genuine Read</button>
+                    <button class="btn">Wishful Odds</button>
+                    <button class="btn">Forcing Action</button>
+                    <button class="btn">Revenge Bet</button>
+                </div>
+            </div>
+            <div class="mt-4">
+                <label class="block text-sm font-medium mb-1">Meta Game Notes</label>
+                <textarea placeholder="Bankroll management, tilt check, market timing, edge sustainability..." class="textarea-field h-20"></textarea>
+            </div>
+                    </div>
+
+        <!-- SAVE BUTTON -->
+        <div class="col-span-2">
+            <button id="save-pdf-btn" class="w-full btn btn-primary text-lg">SAVE ANALYSIS AS PDF</button>
+        </div>
+
+        <!-- DON'T BE SURPRISED EXPRESSION -->
+        <div class="card col-span-2">
+            <h2 class="card-title"><i class="fas fa-theater-masks"></i>Don't Be Surprised Expression</h2>
+            <div class="mt-4">
+                <p class="text-sm text-gray-400 mb-4">Your ritual against emotional whiplash. The blueprint that keeps you <strong>reflexive</strong>, not reactive. Because you already know what's coming.</p>
+                
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="bg-gray-800 p-4 rounded border-l-4 border-red-500">
+                        <h4 class="text-red-400 font-semibold mb-2">🔥 "Hero Shot" Moment</h4>
+                        <textarea placeholder="Describe the spectacular play/shot that will look like momentum..." class="textarea-field h-16 mb-2"></textarea>
+                        <p class="text-xs text-gray-500">Don't be surprised. That's not fighting to win — it's composing the final ballad. Poetry, not pressure.</p>
+                    </div>
+                    
+                    <div class="bg-gray-800 p-4 rounded border-l-4 border-orange-500">
+                        <h4 class="text-orange-400 font-semibold mb-2">🔁 "Highlight Reel" Moment</h4>
+                        <textarea placeholder="The explosive play that will make the crowd erupt..." class="textarea-field h-16 mb-2"></textarea>
+                        <p class="text-xs text-gray-500">Don't be surprised. That's not resurrection — that's the funeral fireworks. Going out in style, not climbing back.</p>
+                    </div>
+                    
+                    <div class="bg-gray-800 p-4 rounded border-l-4 border-blue-500">
+                        <h4 class="text-blue-400 font-semibold mb-2">🪨 "Boring Efficiency" Moment</h4>
+                        <textarea placeholder="The methodical, unsexy play that looks routine..." class="textarea-field h-16 mb-2"></textarea>
+                        <p class="text-xs text-gray-500">Don't be surprised. That's what death by structure looks like. No drama. Just erosion.</p>
+                    </div>
+                </div>
+                
+                <div class="mt-6 bg-green-900 bg-opacity-30 p-4 rounded">
+                    <h4 class="text-green-400 font-semibold mb-2">✅ Betting Translation</h4>
+                    <textarea placeholder="How will you stay in position? What fake momentum will you fade?" class="textarea-field h-20"></textarea>
+                </div>
+                
+                <div class="mt-4 bg-purple-900 bg-opacity-30 p-4 rounded text-center">
+                    <h4 class="text-purple-400 font-semibold mb-2">🧘‍♂️ Mental Reset Mantra</h4>
+                    <p class="text-sm italic">"I have already seen the movie. What others call momentum, I call choreography."</p>
+                    <p class="text-sm italic mt-1">"Let the crowd scream. I will breathe."</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- POST-MATCH DEBRIEF -->
+        <div class="card col-span-2">
+            <h2 class="card-title"><i class="fas fa-flag-checkered"></i>Post-Match Debrief</h2>
+            <div class="grid grid-cols-2 gap-4 mt-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">What I Sensed Correctly</label>
+                    <textarea placeholder="What signals did I read well?" class="textarea-field h-24"></textarea>
+                    </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">What I Missed</label>
+                    <textarea placeholder="What did the field show me that I didn't see?" class="textarea-field h-24"></textarea>
+                </div>
+            </div>
+            <div class="mt-4">
+                <label class="block text-sm font-medium mb-1">Field Note (One Sentence)</label>
+                <textarea placeholder="Today, I learned ______ because I ______." class="textarea-field h-16"></textarea>
+            </div>
+            
+            <div class="mt-6 text-center">
+                <label class="block text-sm font-medium mb-3">Final Result</label>
+                <div class="flex justify-center gap-8">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" class="hidden peer">
+                        <div class="text-4xl peer-checked:scale-125 transition-transform">🎯</div>
+                        <span class="ml-2 text-green-400 font-medium">HIT</span>
+                    </label>
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" class="hidden peer">
+                        <div class="text-4xl peer-checked:scale-125 transition-transform">❌</div>
+                        <span class="ml-2 text-red-400 font-medium">MISS</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <footer class="text-center text-xs text-gray-500 mt-8">
+        Session: <span id="session-time"></span>
+    </footer>
+
+    <script>
+        document.getElementById('session-time').textContent = new Date().toLocaleString();
+        
+        // Add PDF button event listener
+        document.getElementById('save-pdf-btn').addEventListener('click', saveAnalysisAsPDF);
+        
+        // Add button functionality for all interactive buttons
+        function initializeButtons() {
+            // EV Assessment buttons
+            const evButtons = document.querySelectorAll('.btn[class*="btn"]');
+            evButtons.forEach(button => {
+                if (button.textContent.includes('Positive EV') || 
+                    button.textContent.includes('Neutral EV') || 
+                    button.textContent.includes('Negative EV') || 
+                    button.textContent.includes('Unknown') ||
+                    button.textContent.includes('Genuine Read') || 
+                    button.textContent.includes('Wishful Odds') || 
+                    button.textContent.includes('Forcing Action') || 
+                    button.textContent.includes('Revenge Bet') ||
+                    button.textContent.includes('Justified') || 
+                    button.textContent.includes('Overreaction') || 
+                    button.textContent.includes('Delayed') || 
+                    button.textContent.includes('Ignoring') ||
+                    button.textContent.includes('Expanding') || 
+                    button.textContent.includes('Contracting') || 
+                    button.textContent.includes('Neutral') ||
+                    button.textContent.includes('Calm') || 
+                    button.textContent.includes('Tight') || 
+                    button.textContent.includes('Sloppy') || 
+                    button.textContent.includes('Disengaged') ||
+                    button.textContent.includes('Present & Responsive') || 
+                    button.textContent.includes('Drifting') || 
+                    button.textContent.includes('Over-attached') || 
+                    button.textContent.includes('Avoiding') ||
+                    button.textContent.includes('Tennis') || 
+                    button.textContent.includes('Soccer') || 
+                    button.textContent.includes('Fighting') || 
+                    button.textContent.includes('Racing') || 
+                    button.textContent.includes('Esports')) {
+                    
+                    button.addEventListener('click', function() {
+                        // Remove active class from siblings
+                        const siblings = this.parentNode.querySelectorAll('.btn');
+                        siblings.forEach(sib => sib.classList.remove('active'));
+                        
+                        // Add active class to clicked button
+                        this.classList.add('active');
+                        
+                        // Store the selection in a data attribute for PDF generation
+                        const section = this.closest('.card');
+                        if (section) {
+                            const sectionTitle = section.querySelector('.card-title').textContent.trim();
+                            section.setAttribute('data-selection', this.textContent.trim());
+                        }
+                    });
+                }
+            });
+            
+            // Alignment Check button
+            const alignmentBtn = document.querySelector('button[class*="btn"][class*="btn-primary"]');
+            if (alignmentBtn && alignmentBtn.textContent.includes('ALIGNMENT CHECK')) {
+                alignmentBtn.addEventListener('click', function() {
+                    alert('Alignment Check: Review your emotional state and ensure you\'re trading from a place of discipline, not emotion.');
+                });
+            }
+        }
+        
+        // Initialize buttons when page loads
+        document.addEventListener('DOMContentLoaded', initializeButtons);
+        
+        function searchNews() {
+            const eventInput = document.getElementById('event-input');
+            const searchTerm = eventInput.value.trim();
+            
+            if (!searchTerm) {
+                alert('Please enter a team or match name first');
+                return;
+            }
+            
+            const newsUrl = `https://news.google.com/search?q=${encodeURIComponent(searchTerm)}`;
+            window.open(newsUrl, '_blank');
+        }
+        
+        function searchImages() {
+            const eventInput = document.getElementById('event-input');
+            const searchTerm = eventInput.value.trim();
+            
+            if (!searchTerm) {
+                alert('Please enter a team or match name first');
+                return;
+            }
+            
+            const imagesUrl = `https://www.google.com/search?q=${encodeURIComponent(searchTerm)}&tbm=isch`;
+            window.open(imagesUrl, '_blank');
+        }
+
+        function searchNews() {
+            const eventInput = document.getElementById('event-input');
+            const searchTerm = eventInput.value.trim();
+            if (searchTerm) {
+                const newsUrl = `https://news.google.com/search?q=${encodeURIComponent(searchTerm + ' football soccer news')}`;
+                window.open(newsUrl, '_blank');
+            } else {
+                alert('Please enter a team or match name first to search for news.');
+            }
+        }
+
+        function searchImages() {
+            const eventInput = document.getElementById('event-input');
+            const searchTerm = eventInput.value.trim();
+            if (searchTerm) {
+                const imagesUrl = `https://www.google.com/search?q=${encodeURIComponent(searchTerm + ' football soccer')}&tbm=isch`;
+                window.open(imagesUrl, '_blank');
+            } else {
+                alert('Please enter a team or match name first to search for images.');
+            }
+        }
+
+        // PDF Generation Function
+        function saveAnalysisAsPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            
+            // Get current date and time
+            const now = new Date();
+            const dateStr = now.toLocaleDateString();
+            const timeStr = now.toLocaleTimeString();
+            
+            // Add title
+            doc.setFontSize(20);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Trading Analysis Report', 20, 20);
+            
+            // Add date and time
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Generated: ${dateStr} at ${timeStr}`, 20, 30);
+            
+            let yPosition = 40;
+            const pageHeight = doc.internal.pageSize.height;
+            const margin = 20;
+            const lineHeight = 7;
+            
+            // Helper function to add text with page breaks
+            function addText(text, fontSize = 10, isBold = false) {
+                if (!text || text.trim() === '') return;
+                
+                doc.setFontSize(fontSize);
+                doc.setFont('helvetica', isBold ? 'bold' : 'normal');
+                
+                const lines = doc.splitTextToSize(text, 170);
+                for (let i = 0; i < lines.length; i++) {
+                    if (yPosition > pageHeight - 20) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                    doc.text(lines[i], margin, yPosition);
+                    yPosition += lineHeight;
+                }
+                yPosition += 3;
+            }
+            
+            // Collect all form data using more comprehensive selectors
+            const eventInput = document.getElementById('event-input')?.value || '';
+            const dominantStory = document.querySelector('textarea[placeholder*="What does the market believe"]')?.value || '';
+            const contrarianAngle = document.querySelector('textarea[placeholder*="Where could this break"]')?.value || '';
+            const preBetCommitment = document.querySelector('textarea[placeholder*="I\'m betting"]')?.value || '';
+            
+            // Add main sections
+            addText('EVENT/MATCH:', 12, true);
+            addText(eventInput || 'Not specified', 10);
+            
+            addText('DOMINANT STORY:', 12, true);
+            addText(dominantStory || 'Not specified', 10);
+            
+            addText('CONTRARIAN ANGLE:', 12, true);
+            addText(contrarianAngle || 'Not specified', 10);
+            
+            addText('PRE-BET COMMITMENT:', 12, true);
+            addText(preBetCommitment || 'Not specified', 10);
+            
+            // Pressure Scanner
+            addText('PRESSURE SCANNER:', 12, true);
+            const pressurePoints = document.querySelector('textarea[placeholder*="Injuries, lineup changes"]')?.value || '';
+            addText('Structural Pressure Points:', 10, true);
+            addText(pressurePoints || 'Not specified', 10);
+            
+            // Human Intelligence
+            addText('HUMAN INTELLIGENCE:', 12, true);
+            
+            const previousResults = document.querySelector('textarea[placeholder*="How did they really play"]')?.value || '';
+            addText('Previous Results (Energy & Emotion):', 10, true);
+            addText(previousResults || 'Not specified', 10);
+            
+            const socialMedia = document.querySelector('textarea[placeholder*="What\'s the mood"]')?.value || '';
+            addText('Social Media & Fan Sentiment:', 10, true);
+            addText(socialMedia || 'Not specified', 10);
+            
+            const coachManagement = document.querySelector('textarea[placeholder*="Pressure on coach"]')?.value || '';
+            addText('Coach & Management:', 10, true);
+            addText(coachManagement || 'Not specified', 10);
+            
+            const personalFamily = document.querySelector('textarea[placeholder*="Player family Issues"]')?.value || '';
+            addText('Personal & Family Situations:', 10, true);
+            addText(personalFamily || 'Not specified', 10);
+            
+            const injuryPsychology = document.querySelector('textarea[placeholder*="Who\'s out and how does it affect"]')?.value || '';
+            addText('Injury Psychology & Impact:', 10, true);
+            addText(injuryPsychology || 'Not specified', 10);
+            
+            // Perspective Lenses
+            addText('PERSPECTIVE LENSES:', 12, true);
+            
+            const fiveYearOld = document.querySelector('textarea[placeholder*="Simple story"]')?.value || '';
+            addText('Explain to a 5-Year-Old:', 10, true);
+            addText(fiveYearOld || 'Not specified', 10);
+            
+            const skincrawler = document.querySelector('textarea[placeholder*="What\'s really going on beneath"]')?.value || '';
+            addText('Skincrawler (Super Inside Mind):', 10, true);
+            addText(skincrawler || 'Not specified', 10);
+            
+            const gutFeeling = document.querySelector('textarea[placeholder*="What does your gut tell you without"]')?.value || '';
+            addText('Know Intuitively Something:', 10, true);
+            addText(gutFeeling || 'Not specified', 10);
+            
+            const publicGamble = document.querySelector('textarea[placeholder*="How would casual fans see"]')?.value || '';
+            addText('Public Gamble:', 10, true);
+            addText(publicGamble || 'Not specified', 10);
+            
+            const interviewBodyLanguage = document.querySelector('textarea[placeholder*="What did they really say"]')?.value || '';
+            addText('Interview Body Language & Quotes:', 10, true);
+            addText(interviewBodyLanguage || 'Not specified', 10);
+            
+            const everythingElse = document.querySelector('textarea[placeholder*="Weather psychology"]')?.value || '';
+            addText('Everything Else (The Intangibles):', 10, true);
+            addText(everythingElse || 'Not specified', 10);
+            
+            // Trade Expression Mapper
+            addText('TRADE EXPRESSION MAPPER:', 12, true);
+            const tradeRationale = document.querySelector('textarea[placeholder*="Why this expression matches"]')?.value || '';
+            addText('Rationale:', 10, true);
+            addText(tradeRationale || 'Not specified', 10);
+            
+            // Meta Game Notes
+            const metaNotes = document.querySelector('textarea[placeholder*="Bankroll management"]')?.value || '';
+            addText('META GAME NOTES:', 12, true);
+            addText(metaNotes || 'Not specified', 10);
+            
+            // Add button selections
+            const sections = document.querySelectorAll('.card[data-selection]');
+            if (sections.length > 0) {
+                addText('BUTTON SELECTIONS:', 12, true);
+                sections.forEach(section => {
+                    const sectionTitle = section.querySelector('.card-title')?.textContent?.trim() || '';
+                    const selection = section.getAttribute('data-selection');
+                    if (sectionTitle && selection) {
+                        addText(`${sectionTitle}:`, 10, true);
+                        addText(selection, 10);
+                    }
+                });
+            }
+            
+            // "Don't Be Surprised" expressions
+            addText('DON\'T BE SURPRISED EXPRESSION:', 12, true);
+            
+            const heroShot = document.querySelector('textarea[placeholder*="Describe the spectacular play"]')?.value || '';
+            addText('"Hero Shot" Moment:', 10, true);
+            addText(heroShot || 'Not specified', 10);
+            
+            const highlightReel = document.querySelector('textarea[placeholder*="The explosive play"]')?.value || '';
+            addText('"Highlight Reel" Moment:', 10, true);
+            addText(highlightReel || 'Not specified', 10);
+            
+            const boringEfficiency = document.querySelector('textarea[placeholder*="The methodical, unsexy play"]')?.value || '';
+            addText('"Boring Efficiency" Moment:', 10, true);
+            addText(boringEfficiency || 'Not specified', 10);
+            
+            const bettingTranslation = document.querySelector('textarea[placeholder*="How will you stay in position"]')?.value || '';
+            addText('Betting Translation:', 10, true);
+            addText(bettingTranslation || 'Not specified', 10);
+            
+            // Post-match debrief
+            addText('POST-MATCH DEBRIEF:', 12, true);
+            
+            const whatSensedCorrectly = document.querySelector('textarea[placeholder*="What signals did I read well"]')?.value || '';
+            addText('What I Sensed Correctly:', 10, true);
+            addText(whatSensedCorrectly || 'Not specified', 10);
+            
+            const whatMissed = document.querySelector('textarea[placeholder*="What did the field show me"]')?.value || '';
+            addText('What I Missed:', 10, true);
+            addText(whatMissed || 'Not specified', 10);
+            
+            const fieldNote = document.querySelector('textarea[placeholder*="Today, I learned"]')?.value || '';
+            addText('Field Note:', 10, true);
+            addText(fieldNote || 'Not specified', 10);
+            
+            // Save the PDF
+            const fileName = `Trading_Analysis_${now.getFullYear()}_${String(now.getMonth() + 1).padStart(2, '0')}_${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}_${String(now.getMinutes()).padStart(2, '0')}.pdf`;
+            doc.save(fileName);
+        }
+    </script>
+</body>
+</html> 

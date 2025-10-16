@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Manager - SteveSystem</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">📊 Data Manager</h1>
+        
+        <div class="space-y-6">
+            <!-- Export Section -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 text-green-400">📤 Export Data</h2>
+                <p class="text-gray-300 mb-4">Export your Master Dashboard data to a file that can be transferred to other computers.</p>
+                <button onclick="exportData()" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded">
+                    Export All Data
+                </button>
+                <div id="export-status" class="mt-4"></div>
+            </div>
+            
+            <!-- Import Section -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 text-blue-400">📥 Import Data</h2>
+                <p class="text-gray-300 mb-4">Import data from another computer or restore from backup.</p>
+                <input type="file" id="import-file" accept=".json" class="mb-4">
+                <button onclick="importData()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">
+                    Import Data
+                </button>
+                <div id="import-status" class="mt-4"></div>
+            </div>
+            
+            <!-- Current Data Preview -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 text-yellow-400">📋 Current Data Preview</h2>
+                <button onclick="showCurrentData()" class="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded mb-4">
+                    Show Current Data
+                </button>
+                <pre id="data-preview" class="bg-gray-900 p-4 rounded text-sm overflow-auto max-h-96 hidden"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function exportData() {
+            try {
+                // Get all localStorage data
+                const pnlData = localStorage.getItem('stevesystem_pnl_data');
+                const prioritiesData = localStorage.getItem('stevesystem_priorities');
+                
+                const exportData = {
+                    timestamp: new Date().toISOString(),
+                    pnlData: pnlData ? JSON.parse(pnlData) : {},
+                    prioritiesData: prioritiesData ? JSON.parse(prioritiesData) : [],
+                    version: '1.0'
+                };
+                
+                // Create and download file
+                const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `stevesystem-data-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                document.getElementById('export-status').innerHTML = '<p class="text-green-400">✅ Data exported successfully!</p>';
+            } catch (error) {
+                document.getElementById('export-status').innerHTML = '<p class="text-red-400">❌ Export failed: ' + error.message + '</p>';
+            }
+        }
+        
+        function importData() {
+            const fileInput = document.getElementById('import-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                document.getElementById('import-status').innerHTML = '<p class="text-red-400">❌ Please select a file first</p>';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importData = JSON.parse(e.target.result);
+                    
+                    // Validate data structure
+                    if (!importData.pnlData || !importData.version) {
+                        throw new Error('Invalid data format');
+                    }
+                    
+                    // Import the data
+                    localStorage.setItem('stevesystem_pnl_data', JSON.stringify(importData.pnlData));
+                    if (importData.prioritiesData) {
+                        localStorage.setItem('stevesystem_priorities', JSON.stringify(importData.prioritiesData));
+                    }
+                    
+                    document.getElementById('import-status').innerHTML = '<p class="text-green-400">✅ Data imported successfully! Refresh the Master Dashboard to see changes.</p>';
+                } catch (error) {
+                    document.getElementById('import-status').innerHTML = '<p class="text-red-400">❌ Import failed: ' + error.message + '</p>';
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        function showCurrentData() {
+            try {
+                const pnlData = localStorage.getItem('stevesystem_pnl_data');
+                const prioritiesData = localStorage.getItem('stevesystem_priorities');
+                
+                const currentData = {
+                    pnlData: pnlData ? JSON.parse(pnlData) : {},
+                    prioritiesData: prioritiesData ? JSON.parse(prioritiesData) : []
+                };
+                
+                const preview = document.getElementById('data-preview');
+                preview.textContent = JSON.stringify(currentData, null, 2);
+                preview.classList.remove('hidden');
+            } catch (error) {
+                document.getElementById('data-preview').textContent = 'Error loading data: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

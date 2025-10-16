@@ -1,117 +1,192 @@
-# 🎯 SteveSystem - Meta Content Orchestrator
+# SteveSystem PNL Dashboard
 
-A complete meta content orchestrator with master dashboard, voice cloning, analysis tools, and trading systems.
+A comprehensive Profit & Loss tracking dashboard with file-based storage and cloud sync capabilities.
 
-## 📁 Structure
+## 🚀 Features
 
+- **Day-specific Priorities** - Each day has its own priority list
+- **PNL Tracking** - Daily profit/loss monitoring
+- **Individual Trades** - Detailed trade logging
+- **Daily Journal** - Morning intentions, evening reflections, focus areas
+- **File-based Storage** - Data saved to actual files (not just browser storage)
+- **Cloud Sync** - Automatic backup to GitHub
+- **Cross-device Access** - Access your data from any computer
+
+## 📁 Data Storage
+
+Your data is now saved to actual files in the repository:
+
+- **`data/pnl_data.json`** - All your PNL data, priorities, trades, and journal entries
+- **`config.json`** - Configuration settings including GitHub sync preferences
+- **Git History** - Every change is automatically committed and can be synced to GitHub
+
+## 🛠️ Setup
+
+### Quick Start
+
+1. **Run the setup script:**
+   ```bash
+   ./setup.sh
+   ```
+
+2. **Start the server:**
+   ```bash
+   npm start
+   ```
+
+3. **Open your browser:**
+   ```
+   http://localhost:3000
+   ```
+
+### Manual Setup
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Start the server:**
+   ```bash
+   npm start
+   ```
+
+3. **Open in browser:**
+   ```
+   http://localhost:3000
+   ```
+
+## ☁️ Cloud Sync (Optional)
+
+To enable automatic backup to GitHub:
+
+1. **Create a GitHub repository** for your PNL data
+2. **Run the GitHub setup:**
+   ```bash
+   node scripts/setup-github.js
+   ```
+3. **Follow the prompts** to connect your repository
+
+### Manual GitHub Setup
+
+1. **Initialize git repository:**
+   ```bash
+   git init
+   git add .
+   git commit -m "Initial commit: SteveSystem PNL Dashboard"
+   ```
+
+2. **Add your GitHub repository:**
+   ```bash
+   git remote add origin https://github.com/yourusername/pnl-data.git
+   git push -u origin main
+   ```
+
+3. **Update config.json:**
+   ```json
+   {
+     "githubRepo": "https://github.com/yourusername/pnl-data.git",
+     "autoCommit": true,
+     "lastSync": "2024-01-01T00:00:00.000Z"
+   }
+   ```
+
+## 🔄 Data Persistence
+
+### What Gets Saved
+
+- ✅ **Day-specific Priorities** - Each day's priority list
+- ✅ **PNL Data** - Daily profit/loss amounts
+- ✅ **Individual Trades** - Detailed trade information
+- ✅ **Daily Journal** - Morning intentions, evening reflections, focus areas
+- ✅ **Patterns & Improvements** - What you learned and what could be better
+- ✅ **Win Rate & Stats** - Trading performance metrics
+
+### Where It's Saved
+
+- **Local Files**: `data/pnl_data.json`
+- **Git History**: Every change is automatically committed
+- **GitHub** (if configured): Automatic backup to cloud
+- **Cross-device**: Pull changes on any computer
+
+## 🚀 Usage
+
+### Daily Workflow
+
+1. **Morning**: Set your priorities and intentions
+2. **During Day**: Log trades and update PNL
+3. **Evening**: Reflect on the day and note improvements
+4. **Automatic**: Everything saves to files and syncs to GitHub
+
+### Adding Data
+
+- **Priorities**: Click "Manage" or "Add" in the Top Priorities section
+- **PNL**: Click on any day in the calendar to add/edit data
+- **Trades**: Use the individual trades section in the daily modal
+- **Journal**: Fill in morning intentions, evening reflections, etc.
+
+### Syncing Data
+
+- **Automatic**: Data saves every 30 seconds
+- **Manual**: Use the sync buttons in the interface
+- **GitHub**: Automatic commits and pushes (if configured)
+
+## 🔧 Configuration
+
+Edit `config.json` to customize:
+
+```json
+{
+  "githubRepo": "https://github.com/yourusername/pnl-data.git",
+  "autoCommit": true,
+  "lastSync": "2024-01-01T00:00:00.000Z"
+}
 ```
-ReflexBigChex/
-├── index.html                    # 🎯 Master Dashboard
-├── analysis/                     # 🧠 Analysis Tools
-│   ├── contra.py                # Bias & contradiction detection
-│   ├── bsi_repath.py            # Low-state recovery system
-│   ├── validation_loop.py       # Reality-checking system
-│   └── historical_cases/        # Validated precedent database
-├── bsi scale/                   # 📊 BSI Analysis System
-│   ├── unified_analysis_model.json
-│   └── bsi.txt                  # Eyes Never Lie prompts
-├── domains/                     # 🌍 Domain Analysis
-│   └── soccer/                  # Football analysis
-├── trading dashbaord/           # 📈 Trading Analysis
-│   └── validation_report.json
-├── voices/                      # 🎤 Voice Assets
-│   ├── contra                   # Contra voices
-│   └── skitz                    # Skitz voices
-└── voice_studio/               # 🎵 Voice Cloning System
-    ├── api/                    # FastAPI backend
-    ├── frontend/               # Web interface
-    └── scripts/                # Voice cloning + YouTube downloader
-```
 
-## 🚀 Quick Start
+## 📊 API Endpoints
 
-### 1. Master Dashboard
-```bash
-# Open the main dashboard
-open index.html
-```
+The server provides REST API endpoints:
 
-### 2. Voice Cloning System
-```bash
-# Start voice studio
-voice_studio/start_voice_studio.command
+- `GET /api/pnl-data` - Get all PNL data
+- `POST /api/pnl-data` - Save all PNL data
+- `GET /api/pnl-data/:year/:month/:day` - Get specific day data
+- `POST /api/pnl-data/:year/:month/:day` - Save specific day data
+- `POST /api/sync-github` - Manual GitHub sync
+- `POST /api/pull-github` - Pull from GitHub
+- `GET /api/health` - Health check
 
-# Download YouTube samples (optional)
-voice_studio/start_youtube_downloader.command
+## 🛡️ Data Safety
 
-# Open voice interface
-open voice_studio/frontend/voice_ui.html
-```
+- **Local Backup**: Data is saved to files in the repository
+- **Git History**: Every change is tracked in git
+- **Cloud Backup**: Automatic sync to GitHub (if configured)
+- **No Data Loss**: Multiple layers of data protection
 
-### 3. Analysis Tools
-```bash
-# Contra analysis
-python3 analysis/contra.py
+## 🔍 Troubleshooting
 
-# BSI re-path system
-python3 analysis/bsi_repath.py
+### Server Won't Start
+- Check if port 3000 is available
+- Run `npm install` to ensure dependencies are installed
+- Check Node.js version (requires Node.js 14+)
 
-# Validation loop
-python3 analysis/validation_loop.py
-```
+### Data Not Saving
+- Check if the server is running
+- Look for errors in the browser console
+- Verify the `data` directory exists and is writable
 
-### 4. Trading Dashboard
-```bash
-# Open trading analysis
-open "trading dashbaord/dashboard"
-```
+### GitHub Sync Issues
+- Verify your GitHub repository URL is correct
+- Check if you have push access to the repository
+- Ensure git is properly configured with your credentials
 
-## 🎯 Features
+## 📝 License
 
-### 🎤 Voice System
-- **Multiple Voices**: Anisimova, Mel, Swiatek, Contra, Skitz
-- **Multiple Styles**: Normal, Sassy, Roast, Calm, Hype, Confident
-- **YouTube Download**: Extract voice samples with timestamps
-- **Script Generation**: Built-in Pep Guardiola roast + custom text
-- **Audio Tools**: Combine clips, add fades, get file info
+MIT License - Feel free to use and modify as needed.
 
-### 🧠 Analysis Tools
-- **Contra Analysis**: Automated bias and contradiction detection
-- **BSI Re-Path System**: Low-state recovery with Eyes Never Lie prompts
-- **Validation Loop**: Reality-checking against actual outcomes
-- **Historical Cases**: Validated precedent database with learning
+## 🤝 Contributing
 
-### 📊 Trading & Domains
-- **Trading Dashboard**: Comprehensive analysis interface
-- **Domain Analysis**: Soccer, basketball, and sports analysis
-- **BSI Scale**: Unified analysis model with scoring
-
-### 🎯 Master Dashboard
-- **Unified Interface**: All components in one place
-- **Workflow Integration**: GPT → Contra → BSI → Voices → Dashboard
-- **Local Processing**: Everything runs on your machine
-
-## 📖 Voice Cloning Guide
-
-See `voice_studio/scripts/VOICE_CLONING_GUIDE.md` for detailed instructions on:
-- Setting up the conda environment
-- Downloading voice samples from YouTube
-- Using different voice styles and parameters
-
-## 🔧 Requirements
-
-- Python 3.8+
-- Conda environment with ChatterboxTTS
-- Voice sample files (MP3/WAV)
-
-## 📝 Usage
-
-1. **Download voice samples** from YouTube using the scripts
-2. **Start the API** server
-3. **Open the web interface**
-4. **Generate voices** with different styles
-5. **Download audio files** for your projects
+This is a personal project, but suggestions and improvements are welcome!
 
 ---
 
-*Streamlined for maximum efficiency and ease of use.*
+**Happy Trading! 📈**

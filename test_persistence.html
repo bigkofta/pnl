@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Persistence Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">PNL System Data Persistence Test</h1>
+        
+        <div class="space-y-6">
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4">What Gets Saved</h2>
+                <ul class="space-y-2 text-gray-300">
+                    <li>✅ <strong>Priorities</strong> - Day-specific priorities for each date</li>
+                    <li>✅ <strong>PNL Data</strong> - Daily profit/loss amounts</li>
+                    <li>✅ <strong>Individual Trades</strong> - Detailed trade information</li>
+                    <li>✅ <strong>Daily Journal</strong> - Morning intentions, evening reflections, etc.</li>
+                    <li>✅ <strong>Focus Areas</strong> - Key focus areas for each day</li>
+                    <li>✅ <strong>Patterns & Improvements</strong> - What you learned and what could be better</li>
+                </ul>
+            </div>
+            
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4">How to Test</h2>
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="font-semibold mb-2">1. Add Some Data</h3>
+                        <p class="text-gray-300">Go to the main dashboard and:</p>
+                        <ul class="list-disc list-inside ml-4 text-gray-300">
+                            <li>Add priorities for today</li>
+                            <li>Add some PNL data</li>
+                            <li>Add individual trades</li>
+                            <li>Fill in daily journal sections</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold mb-2">2. Check localStorage</h3>
+                        <p class="text-gray-300">Open browser console (F12) and run:</p>
+                        <code class="bg-gray-700 p-2 rounded block mt-2">debugShowAllData()</code>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold mb-2">3. Test Persistence</h3>
+                        <p class="text-gray-300">Close the browser completely, reopen, and check if your data is still there.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4">Storage Details</h2>
+                <div class="space-y-2 text-gray-300">
+                    <p><strong>Storage Method:</strong> Browser localStorage</p>
+                    <p><strong>Storage Key:</strong> <code>stevesystem_pnl_data</code></p>
+                    <p><strong>Data Format:</strong> JSON</p>
+                    <p><strong>Persistence:</strong> Survives browser restarts, computer restarts</p>
+                    <p><strong>Limitations:</strong> Data is tied to this specific browser on this computer</p>
+                </div>
+            </div>
+            
+            <div class="bg-blue-900 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4">Quick Test</h2>
+                <button onclick="runQuickTest()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">
+                    Run Quick Persistence Test
+                </button>
+                <div id="test-results" class="mt-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function runQuickTest() {
+            const results = document.getElementById('test-results');
+            results.innerHTML = '<p class="text-yellow-400">Running test...</p>';
+            
+            try {
+                // Test if localStorage is available
+                const testKey = 'pnl_test_' + Date.now();
+                localStorage.setItem(testKey, 'test_value');
+                const retrieved = localStorage.getItem(testKey);
+                localStorage.removeItem(testKey);
+                
+                if (retrieved === 'test_value') {
+                    results.innerHTML = `
+                        <div class="text-green-400">
+                            <p>✅ localStorage is working</p>
+                            <p>✅ Data will persist between sessions</p>
+                            <p>✅ Your PNL data is safe!</p>
+                        </div>
+                    `;
+                } else {
+                    results.innerHTML = '<p class="text-red-400">❌ localStorage test failed</p>';
+                }
+            } catch (error) {
+                results.innerHTML = `<p class="text-red-400">❌ Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

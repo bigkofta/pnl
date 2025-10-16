@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Test</h1>
+    <button onclick="testSave()">Test Save</button>
+    <div id="result"></div>
+
+    <script>
+        async function testSave() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const testData = {
+                    "2025-10-16": {
+                        "pnl": 999,
+                        "trades": 1,
+                        "priorities": []
+                    }
+                };
+                
+                console.log('Sending data:', testData);
+                
+                const response = await fetch('/api/pnl-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+                
+                const result = await response.text();
+                console.log('Response text:', result);
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = '✅ SUCCESS: ' + result;
+                } else {
+                    resultDiv.innerHTML = '❌ ERROR: ' + response.status + ' - ' + result;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = '❌ NETWORK ERROR: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

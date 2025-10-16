@@ -1,0 +1,17 @@
+{
+  "test": "data",
+  "2025-10-15": {
+    "pnl": 41421313,
+    "trades": 0,
+    "winRate": 0,
+    "largestWin": 0,
+    "morningIntentions": "",
+    "focusAreas": "",
+    "eveningReflection": "",
+    "learned": "",
+    "patterns": "",
+    "improvements": "",
+    "individualTrades": [],
+    "priorities": []
+  }
+}
