@@ -30,6 +30,7 @@
     }
   },
   "priorities": [],
-  "last_updated": "2025-10-16T10:54:48.807Z",
-  "synced_from": "localStorage"
+  "last_updated": "2025-10-16T12:30:08.639Z",
+  "synced_from": "localStorage",
+  "merged_from": "localStorage + server"
 }
