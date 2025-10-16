@@ -678,14 +678,14 @@
 
     <script>
         // Initialize dashboard
-        function initDashboard() {
+        async function initDashboard() {
             updateSessionTime();
             setInterval(updateSessionTime, 1000);
             initSentimentChart();
-            initCapitalChart();
+            await initCapitalChart();
             initPNLChart();
             updateThermometer(73);
-            renderPriorities();
+            await renderPriorities();
             updateDayDisplay();
         }
 
@@ -723,7 +723,7 @@
 
         let capitalChartInstance = null;
 
-        function initCapitalChart() {
+        async function initCapitalChart() {
             const ctx = document.getElementById('capitalChart').getContext('2d');
             capitalChartInstance = new Chart(ctx, {
                 type: 'line',
@@ -912,7 +912,7 @@
             }
         }
 
-        function renderPriorities() {
+        async function renderPriorities() {
             const container = document.getElementById('priorities-list');
             
             if (!container) {
