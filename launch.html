@@ -5,10 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SteveSystem Launcher</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Auto-redirect to server if opened as file
+        if (window.location.protocol === 'file:') {
+            window.location.href = 'http://localhost:3001/launch.html';
+        }
+    </script>
 </head>
 <body class="bg-gray-900 text-white flex items-center justify-center h-screen">
     <div class="text-center">
         <h1 class="text-4xl font-bold mb-8">SteveSystem Launcher</h1>
+        <p class="text-gray-400 mb-6">🚀 Server-powered dashboard with live data</p>
             <div class="space-y-4 flex flex-col items-center">
                 <a href="index.html" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded block">
                     Open Master Dashboard
@@ -28,7 +35,14 @@
                 <a href="cascade_seesaw.html" class="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded block">
                     Open Cascade Scale
                 </a>
+                <a href="session_checklist.html" class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded block">
+                    <i class="fas fa-clipboard-check mr-2"></i>Session Checklist
+                </a>
             </div>
+        <div class="mt-8 text-sm text-gray-500">
+            <p>💡 Tip: Always access through the server for full functionality</p>
+            <p>Server: <a href="http://localhost:3001" class="text-blue-400 hover:text-blue-300">http://localhost:3001</a></p>
+        </div>
     </div>
 </body>
 </html> 

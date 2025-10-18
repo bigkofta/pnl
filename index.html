@@ -947,22 +947,36 @@
                 return;
             }
             
-            // Update day display
-            updatePriorityDayDisplay();
-            
-            console.log('Rendering priorities for date:', currentPriorityDate.toDateString());
-            
-            // Get day data to see what priorities were worked on THIS specific day
-            const dayData = PNLManager.getDay(
+            // If no priorities for current day, find the first day with priorities
+            let dayData = PNLManager.getDay(
                 currentPriorityDate.getFullYear(), 
                 currentPriorityDate.getMonth(), 
                 currentPriorityDate.getDate()
             );
-            const dayPriorities = dayData.priorities || [];
+            let dayPriorities = dayData.priorities || [];
             
+            // If current day has no priorities, find the first day that does
+            if (dayPriorities.length === 0 && window.currentPNLData) {
+                for (const [dateKey, data] of Object.entries(window.currentPNLData)) {
+                    if (data.priorities && data.priorities.length > 0) {
+                        const [year, month, day] = dateKey.split('-').map(Number);
+                        currentPriorityDate = new Date(year, month - 1, day);
+                        currentYear = currentPriorityDate.getFullYear();
+                        currentMonth = currentPriorityDate.getMonth();
+                        dayPriorities = data.priorities;
+                        console.log('📅 Auto-switched to day with priorities:', dateKey);
+                        break;
+                    }
+                }
+            }
+            
+            // Update day display
+            updatePriorityDayDisplay();
+            
+            console.log('Rendering priorities for date:', currentPriorityDate.toDateString());
             console.log('Priorities for this day:', dayPriorities);
             
-            // If no priorities for this day, show empty state
+            // If still no priorities, show empty state
             if (dayPriorities.length === 0) {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
@@ -1142,6 +1156,34 @@
             syncPriorityToCalendar();
         }
 
+        function setPrioritiesToMostRecentDay() {
+            // Find the first day with priorities in the current data
+            if (window.currentPNLData) {
+                for (const [dateKey, dayData] of Object.entries(window.currentPNLData)) {
+                    if (dayData.priorities && dayData.priorities.length > 0) {
+                        const [year, month, day] = dateKey.split('-').map(Number);
+                        const targetDate = new Date(year, month - 1, day);
+                        
+                        currentPriorityDate = targetDate;
+                        currentYear = targetDate.getFullYear();
+                        currentMonth = targetDate.getMonth();
+                        
+                        console.log('📅 Found priorities on:', dateKey);
+                        updatePriorityDayDisplay();
+                        renderCalendar();
+                        renderPriorities();
+                        return;
+                    }
+                }
+            }
+            
+            // Fallback to today if no priorities found
+            currentPriorityDate = new Date();
+            updatePriorityDayDisplay();
+            renderPriorities();
+        }
+
+
         function togglePriorityForDay(priorityId) {
             const dayData = PNLManager.getDay(
                 currentPriorityDate.getFullYear(), 
@@ -1171,6 +1213,9 @@
         }
 
         function openEditPrioritiesModal() {
+            // Ensure we're using the correct date - sync with calendar if needed
+            console.log('Opening priorities modal for:', currentPriorityDate.toDateString());
+            
             // Get the day data to see what priorities are already set for this day
             const dayData = PNLManager.getDay(
                 currentPriorityDate.getFullYear(), 
@@ -1178,6 +1223,9 @@
                 currentPriorityDate.getDate()
             );
             const dayPriorities = dayData.priorities || [];
+            
+            console.log('Day data for priorities:', dayData);
+            console.log('Existing priorities:', dayPriorities);
             
             // Initialize the day priorities for this modal session
             editingPriorities = [...dayPriorities];
@@ -1509,6 +1557,8 @@
                     this.renderCalendar(); 
                     this.renderTotals();
                     this.renderPriorities();
+                    
+                    
                     console.log('✅ Dashboard rendered completely');
                 }, 100);
             }
@@ -1811,7 +1861,13 @@
                     currentPriorityDate = new Date(currentYear, currentMonth, day);
                     console.log('Calendar day clicked:', currentPriorityDate.toDateString());
                     console.log('Syncing priorities to:', currentPriorityDate.toDateString());
+                    
+                    // Update the day display to show the selected day
+                    updatePriorityDayDisplay();
+                    
+                    // Render priorities for the selected day
                     renderPriorities();
+                    
                     // Then open the modal
                     openDayModal(day);
                 };
