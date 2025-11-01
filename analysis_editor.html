@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="google_sheets_integration.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
@@ -51,6 +52,19 @@
         }
         .btn.active {
             background-color: #63b3ed;
+        }
+        
+        #case-studies {
+            transition: all 0.3s ease;
+        }
+        
+        .case-study-item {
+            transition: all 0.2s ease;
+        }
+        
+        .case-study-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .btn-primary {
             background-color: #63b3ed;
@@ -175,13 +189,22 @@
             <div class="mt-4">
                 <label class="block text-sm font-medium mb-1">Sport Category</label>
                 <div class="grid grid-cols-5 gap-2">
-                    <button class="btn">Tennis</button>
-                    <button class="btn">Soccer</button>
-                    <button class="btn">Fighting</button>
-                    <button class="btn">Racing</button>
-                    <button class="btn">Esports</button>
+                    <button class="btn" data-sport="Tennis">Tennis</button>
+                    <button class="btn" data-sport="Soccer">Soccer</button>
+                    <button class="btn" data-sport="Fighting">Fighting</button>
+                    <button class="btn" data-sport="Racing">Racing</button>
+                    <button class="btn" data-sport="Esports">Esports</button>
                 </div>
             </div>
+            
+            <!-- Case Studies Section -->
+            <div id="case-studies" class="mt-4 hidden">
+                <label class="block text-sm font-medium mb-2">📚 Relevant Case Studies</label>
+                <div id="case-study-links" class="space-y-2">
+                    <!-- Case study links will be populated here -->
+                </div>
+            </div>
+            
             <div class="mt-4">
                 <label class="block text-sm font-medium mb-1">Rationale</label>
                 <textarea placeholder="Why this expression matches the narrative tension..." class="textarea-field h-20"></textarea>
@@ -273,9 +296,19 @@
             </div>
                     </div>
 
-        <!-- SAVE BUTTON -->
+        <!-- SAVE BUTTONS -->
         <div class="col-span-2">
-            <button id="save-pdf-btn" class="w-full btn btn-primary text-lg">SAVE ANALYSIS AS PDF</button>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button id="save-pdf-btn" class="btn btn-primary text-lg">
+                    <i class="fas fa-file-pdf"></i> SAVE AS PDF
+                </button>
+                <button id="save-and-upload-btn" class="btn bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-lg">
+                    <i class="fas fa-cloud-upload-alt"></i> SAVE & UPLOAD TO SHEETS
+                </button>
+                <button id="configure-sheets-btn" class="btn bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded text-lg">
+                    <i class="fas fa-cog"></i> CONFIGURE SHEETS
+                </button>
+            </div>
         </div>
 
         <!-- DON'T BE SURPRISED EXPRESSION -->
@@ -361,9 +394,71 @@
     <script>
         document.getElementById('session-time').textContent = new Date().toLocaleString();
         
-        // Add PDF button event listener
+        // Add button event listeners
         document.getElementById('save-pdf-btn').addEventListener('click', saveAnalysisAsPDF);
+        document.getElementById('save-and-upload-btn').addEventListener('click', saveAndUploadToSheets);
+        document.getElementById('configure-sheets-btn').addEventListener('click', () => {
+            window.googleSheetsIntegration.showConfigurationModal();
+        });
         
+        // Case studies data
+        const caseStudies = {
+            'Tennis': [
+                { title: 'Djokovic vs Medvedev - Mental Edge', description: 'How psychological pressure affected the match outcome', link: '#' },
+                { title: 'Federer vs Nadal - Clay Court Mastery', description: 'Surface-specific strategy and execution', link: '#' },
+                { title: 'Serena Williams - Comeback Psychology', description: 'Return from injury and mental resilience patterns', link: '#' }
+            ],
+            'Soccer': [
+                { title: 'Manchester City vs Arsenal - Tactical Evolution', description: 'How Guardiola adapted mid-game strategy', link: '#' },
+                { title: 'Barcelona vs Real Madrid - El Clasico Pressure', description: 'High-stakes match psychology and execution', link: '#' },
+                { title: 'Liverpool vs Chelsea - Penalty Shootout', description: 'Pressure situations and mental preparation', link: '#' }
+            ],
+            'Fighting': [
+                { title: 'McGregor vs Diaz - Striking vs Grappling', description: 'Style matchup and adaptation strategies', link: '#' },
+                { title: 'Jones vs Cormier - Rivalry Psychology', description: 'Personal vendetta affecting performance', link: '#' },
+                { title: 'Nunes vs Rousey - Dominance Patterns', description: 'How confidence affects execution', link: '#' }
+            ],
+            'Racing': [
+                { title: 'Hamilton vs Verstappen - Championship Pressure', description: 'Title race psychology and risk management', link: '#' },
+                { title: 'Le Mans 24h - Endurance Strategy', description: 'Long-form competition mental preparation', link: '#' },
+                { title: 'NASCAR Daytona - Draft Strategy', description: 'Team tactics and individual execution', link: '#' }
+            ],
+            'Esports': [
+                { title: 'Faker vs Chovy - Mid Lane Mastery', description: 'Individual skill vs team strategy', link: '#' },
+                { title: 'Astralis vs FaZe - CS:GO Tactics', description: 'Strategic depth and execution under pressure', link: '#' },
+                { title: 'OG vs Team Secret - Dota 2 Meta', description: 'Meta adaptation and innovation', link: '#' }
+            ]
+        };
+
+        // Function to show case studies for selected sport
+        function showCaseStudies(sport) {
+            const caseStudiesDiv = document.getElementById('case-studies');
+            const caseStudyLinks = document.getElementById('case-study-links');
+            
+            if (caseStudies[sport]) {
+                caseStudyLinks.innerHTML = '';
+                caseStudies[sport].forEach(study => {
+                    const studyDiv = document.createElement('div');
+                    studyDiv.className = 'p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors case-study-item';
+                    studyDiv.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-800 text-sm">${study.title}</h4>
+                                <p class="text-xs text-gray-600 mt-1">${study.description}</p>
+                            </div>
+                            <a href="${study.link}" target="_blank" class="ml-2 text-blue-600 hover:text-blue-800 text-xs font-medium">
+                                View →
+                            </a>
+                        </div>
+                    `;
+                    caseStudyLinks.appendChild(studyDiv);
+                });
+                caseStudiesDiv.classList.remove('hidden');
+            } else {
+                caseStudiesDiv.classList.add('hidden');
+            }
+        }
+
         // Add button functionality for all interactive buttons
         function initializeButtons() {
             // EV Assessment buttons
@@ -411,6 +506,11 @@
                         if (section) {
                             const sectionTitle = section.querySelector('.card-title').textContent.trim();
                             section.setAttribute('data-selection', this.textContent.trim());
+                        }
+
+                        // Show case studies for sport categories
+                        if (this.hasAttribute('data-sport')) {
+                            showCaseStudies(this.getAttribute('data-sport'));
                         }
                     });
                 }
@@ -657,6 +757,51 @@
             // Save the PDF
             const fileName = `Trading_Analysis_${now.getFullYear()}_${String(now.getMonth() + 1).padStart(2, '0')}_${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}_${String(now.getMinutes()).padStart(2, '0')}.pdf`;
             doc.save(fileName);
+        }
+
+        // New function to save PDF and upload to Google Sheets
+        async function saveAndUploadToSheets() {
+            try {
+                // First save the PDF
+                saveAnalysisAsPDF();
+                
+                // Then extract and upload data to Google Sheets
+                const analysisData = window.googleSheetsIntegration.extractAnalysisData();
+                
+                // Check if Google Sheets is configured
+                if (!window.googleSheetsIntegration.isConfigured) {
+                    const proceed = confirm('Google Sheets not configured. Would you like to configure it now?');
+                    if (proceed) {
+                        window.googleSheetsIntegration.showConfigurationModal();
+                    }
+                    return;
+                }
+                
+                // Show loading state
+                const uploadBtn = document.getElementById('save-and-upload-btn');
+                const originalText = uploadBtn.innerHTML;
+                uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> UPLOADING...';
+                uploadBtn.disabled = true;
+                
+                // Upload to Google Sheets
+                const result = await window.googleSheetsIntegration.uploadToGoogleSheets(analysisData);
+                
+                // Show success message
+                alert(`✅ Analysis saved and uploaded successfully!\n\n${result.message}\nRow: ${result.rowNumber}`);
+                
+                // Reset button
+                uploadBtn.innerHTML = originalText;
+                uploadBtn.disabled = false;
+                
+            } catch (error) {
+                console.error('Error saving and uploading:', error);
+                alert(`❌ Error: ${error.message}\n\nPlease check your Google Sheets configuration.`);
+                
+                // Reset button
+                const uploadBtn = document.getElementById('save-and-upload-btn');
+                uploadBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> SAVE & UPLOAD TO SHEETS';
+                uploadBtn.disabled = false;
+            }
         }
     </script>
 </body>
